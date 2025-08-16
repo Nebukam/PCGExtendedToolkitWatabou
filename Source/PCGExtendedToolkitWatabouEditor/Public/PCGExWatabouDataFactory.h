@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EditorReimportHandler.h"
 #include "Factories/Factory.h"
 #include "PCGExWatabouDataFactory.generated.h"
 
@@ -17,10 +18,31 @@ class PCGEXTENDEDTOOLKITWATABOUEDITOR_API UPCGExWatabouDataFactory : public UFac
 
 public:
 	UPCGExWatabouDataFactory();
-protected:
-	virtual UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
+	
+	virtual UObject* FactoryCreateFile(
+		UClass* InClass,
+		UObject* InParent,
+		FName InName,
+		EObjectFlags Flags,
+		const FString& Filename,
+		const TCHAR* Parms,
+		FFeedbackContext* Warn,
+		bool& bOutOperationCanceled
+		) override;
+};
 
-	// Supported formats
-	virtual bool FactoryCanImport(const FString& Filename) override;
+/**
+ * 
+ */
+UCLASS()
+class UPCGExWatabouDataReimportFactory : public UPCGExWatabouDataFactory, public FReimportHandler
+{
+	GENERATED_BODY()
 
+public:
+	UPCGExWatabouDataReimportFactory();
+	
+	virtual bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames) override;
+	virtual void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths) override;
+	virtual EReimportResult::Type Reimport(UObject* Obj) override;
 };

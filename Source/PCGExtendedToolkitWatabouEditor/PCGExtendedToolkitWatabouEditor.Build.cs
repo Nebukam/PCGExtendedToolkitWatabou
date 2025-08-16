@@ -17,7 +17,8 @@ public class PCGExtendedToolkitWatabouEditor : ModuleRules
 				"Slate",
 				"SlateCore",
 				"EditorStyle",
-				"Projects"
+				"Projects", 
+				"PCGExtendedToolkitWatabou"
 			}
 		);
 
@@ -32,6 +33,7 @@ public class PCGExtendedToolkitWatabouEditor : ModuleRules
 				"PCGExtendedToolkit",
 				"PCGExtendedToolkitEditor",
 				"PCGExtendedToolkitWatabou",
+				"Json"
 			}
 		);
 		

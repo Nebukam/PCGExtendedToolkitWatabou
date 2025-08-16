@@ -4,13 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WatabouSettings.h"
-#include "WatabouTypes.h"
 #include "Graph/PCGExChain.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"
-#include "ZoneShapeComponent.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExClusterToWatabou.generated.h"
 
@@ -20,19 +16,6 @@ class UPCGExClusterToWatabouSettings : public UPCGExEdgesProcessorSettings
 	GENERATED_BODY()
 
 public:
-#if WITH_EDITOR
-	UPCGExClusterToWatabouSettings()
-	{
-		if (const UWatabouSettings* WatabouSettings = GetDefault<UWatabouSettings>())
-		{
-			if (const FZoneLaneProfile* NewLaneProfile = WatabouSettings->GetDefaultLaneProfile())
-			{
-				LaneProfile = *NewLaneProfile;
-			}
-		}
-	}
-#endif
-
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ClusterToWatabou, "Cluster to Zone Graph", "Create Zone Graph from clusters.");
@@ -48,7 +31,6 @@ public:
 	virtual bool SupportsEdgeSorting() const override { return DirectionSettings.RequiresSortingRules(); }
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points. Use those if you want to create more polygon shapes.", PCGExFactories::ClusterNodeFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Defines the direction in which points will be ordered to form the final paths. */
@@ -69,20 +51,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double PolygonRadius = 100;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EZoneShapePolygonRoutingType PolygonRoutingType = EZoneShapePolygonRoutingType::Arcs;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FZoneShapePointType PolygonPointType = FZoneShapePointType::LaneProfile;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FZoneShapePointType RoadPointType = FZoneShapePointType::LaneProfile;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections")
-	FWatabouTagMask AdditionalIntersectionTags = FWatabouTagMask::None;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings")
-	FZoneLaneProfileRef LaneProfile;
 
 private:
 	friend class FPCGExClusterToWatabouElement;
@@ -114,44 +82,6 @@ namespace PCGExClusterToWatabou
 {
 	class FProcessor;
 
-	class FZGBase : public TSharedFromThis<FZGBase>
-	{
-	protected:
-		TSharedPtr<FProcessor> Processor;
-
-	public:
-		UZoneShapeComponent* Component = nullptr;
-		double StartRadius = 0;
-		double EndRadius = 0;
-
-		explicit FZGBase(const TSharedPtr<FProcessor>& InProcessor);
-		void InitComponent(AActor* InTargetActor);
-	};
-
-	class FZGRoad : public FZGBase
-	{
-	public:
-		TSharedPtr<PCGExCluster::FNodeChain> Chain;
-		bool bIsReversed = false;
-
-		explicit FZGRoad(const TSharedPtr<FProcessor>& InProcessor, const TSharedPtr<PCGExCluster::FNodeChain>& InChain, const bool InReverse);
-		void Compile(const TSharedPtr<PCGExCluster::FCluster>& Cluster);
-	};
-
-	class FZGPolygon : public FZGBase
-	{
-	protected:
-		TArray<TSharedPtr<FZGRoad>> Roads;
-		TBitArray<> FromStart;
-
-	public:
-		int32 NodeIndex = -1;
-		explicit FZGPolygon(const TSharedPtr<FProcessor>& InProcessor, const PCGExCluster::FNode* InNode);
-
-		void Add(const TSharedPtr<FZGRoad>& InRoad, bool bFromStart);
-		void Compile(const TSharedPtr<PCGExCluster::FCluster>& Cluster);
-	};
-
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExClusterToWatabouContext, UPCGExClusterToWatabouSettings>
 	{
 		friend class FBatch;
@@ -163,12 +93,6 @@ namespace PCGExClusterToWatabou
 
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
-		TArray<TSharedPtr<FZGRoad>> Roads;
-		TArray<TSharedPtr<FZGPolygon>> Polygons;
-
-		TArray<UZoneShapeComponent> RoadComponents;
-		TArray<UZoneShapeComponent> PolygonsComponents;
-
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -178,16 +102,12 @@ namespace PCGExClusterToWatabou
 		virtual bool IsTrivial() const override { return false; }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		bool BuildChains();
 		virtual void CompleteWork() override;
-		void InitComponents();
-		void OnPolygonsCompilationComplete();
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void Output() override;
 
-		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
