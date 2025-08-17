@@ -1,5 +1,5 @@
 ![UE 5.6](https://img.shields.io/badge/UE-5.6-darkgreen) 
-# PCG Extended Toolkit : Watabou
+# PCG Extended Toolkit + Watabou
 
 ![PCGEx](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png)
 
