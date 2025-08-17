@@ -3,15 +3,19 @@
 
 #include "Data/PCGExWatabouData.h"
 
+#include "Data/PCGExWatabouFeature.h"
+
 UPCGExWatabouData::UPCGExWatabouData()
 {
 #if WITH_EDITOR
-		// Instantiate AssetImportData to enable persistent reimport
-		AssetImportData = CreateDefaultSubobject<UAssetImportData>(TEXT("AssetImportData"));
-#endif		
+	// Instantiate AssetImportData to enable persistent reimport
+	AssetImportData = CreateDefaultSubobject<UAssetImportData>(TEXT("AssetImportData"));
+#endif
+
+	Features = CreateDefaultSubobject<UPCGExWatabouFeatureGeometryCollection>(TEXT("Features"));
 }
 
-void UPCGExWatabouData::AddFeature(const FString& FeatureId)
+void UPCGExWatabouData::Reset()
 {
-	FeatureIds.Add(FeatureId);
+	if (Features) { Features->Reset(); }
 }

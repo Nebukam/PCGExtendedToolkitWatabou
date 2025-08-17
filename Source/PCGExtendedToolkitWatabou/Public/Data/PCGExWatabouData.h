@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExWatabou.h"
 #include "Engine/DataAsset.h"
 
 #if WITH_EDITOR
@@ -11,6 +12,7 @@
 
 #include "PCGExWatabouData.generated.h"
 
+class UPCGExWatabouFeatureGeometryCollection;
 /**
  * 
  */
@@ -21,17 +23,15 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouData : public UDataAsset
 
 public:
 	UPCGExWatabouData();
-	
+
 #if WITH_EDITORONLY_DATA
 	// Standard property to hold the source file info
 	UPROPERTY(VisibleAnywhere, Instanced, Category = "Import")
 	UAssetImportData* AssetImportData;
 #endif
-	
-	// Example storage for features (simplified)
-	UPROPERTY()
-	TArray<FString> FeatureIds;
 
-	void AddFeature(const FString& FeatureId);
-	
+	UPROPERTY(Instanced)
+	TObjectPtr<UPCGExWatabouFeatureGeometryCollection> Features;
+
+	void Reset();
 };

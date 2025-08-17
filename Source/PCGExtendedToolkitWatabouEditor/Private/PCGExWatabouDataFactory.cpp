@@ -3,7 +3,9 @@
 #include "PCGExWatabouDataFactory.h"
 
 #include "Editor.h"
+#include "PCGExtendedToolkitWatabou.h"
 #include "Data/PCGExWatabouData.h"
+#include "Importers/PCGExWatabouImporter.h"
 
 
 UPCGExWatabouDataFactory::UPCGExWatabouDataFactory()
@@ -33,32 +35,62 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 		return nullptr;
 	}
 
-	// Create the asset
-	UPCGExWatabouData* NewAsset = NewObject<UPCGExWatabouData>(InParent, InClass, InName, Flags);
+	FName GenName = NAME_None;
+	FPCGExWatabouVersion GenVersion = FPCGExWatabouVersion(0);
 
-	// Assign AssetImportData for reimport
-	if (!NewAsset->AssetImportData)
-	{
-		NewAsset->AssetImportData = NewObject<UAssetImportData>(NewAsset);
-	}
-	NewAsset->AssetImportData->Update(Filename);
-
-	// Example: store features
 	const TArray<TSharedPtr<FJsonValue>>* FeaturesArray;
 	if (JsonObject->TryGetArrayField(TEXT("features"), FeaturesArray))
 	{
+		// If we have a feature array this narrows down the types of data to VG/MFCG/Hood
+		// Find the feature object
 		for (auto& FeatureValue : *FeaturesArray)
 		{
 			TSharedPtr<FJsonObject> FeatureObj = FeatureValue->AsObject();
 			if (!FeatureObj) continue;
 
-			FString FeatureId;
-			if (FeatureObj->TryGetStringField(TEXT("id"), FeatureId))
+			FString TypeId;
+			FString IdId;
+			FString GeneratorId;
+			FString GeneratorVersion;
+
+			if (FeatureObj->TryGetStringField(TEXT("type"), TypeId) &&
+				FeatureObj->TryGetStringField(TEXT("id"), IdId) &&
+				FeatureObj->TryGetStringField(TEXT("generator"), GeneratorId) &&
+				FeatureObj->TryGetStringField(TEXT("version"), GeneratorVersion))
 			{
-				NewAsset->AddFeature(FeatureId);
+				if (TypeId == TEXT("Features") && IdId == TEXT("values"))
+				{
+					GenName = FName(GeneratorId);
+					GenVersion = FPCGExWatabouVersion(GeneratorVersion);
+					break;
+				}
 			}
 		}
 	}
+	else
+	{
+		// Possibly OPD ?
+	}
+
+	FPCGExtendedToolkitWatabouModule* ModulePtr = FModuleManager::GetModulePtr<FPCGExtendedToolkitWatabouModule>("PCGExtendedToolkitWatabou");
+	if (!ModulePtr) { return nullptr; }
+
+	TSharedPtr<PCGExWatabouImporter::IImporter> ImporterInstance = ModulePtr->CreateImporter(GenName, GenVersion);
+
+	if (!ModulePtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Could not find valid importer for Generator '%s', version '%d'"), *GenName.ToString(), static_cast<int32>(GenVersion))
+		return nullptr;
+	}
+
+	// Create the asset
+	UPCGExWatabouData* NewAsset = NewObject<UPCGExWatabouData>(InParent, InClass, InName, Flags);
+
+	// Assign AssetImportData for reimport
+	if (!NewAsset->AssetImportData) { NewAsset->AssetImportData = NewObject<UAssetImportData>(NewAsset); }
+	NewAsset->AssetImportData->Update(Filename);
+
+	ImporterInstance->Build(JsonObject, NewAsset);
 
 	return NewAsset;
 }

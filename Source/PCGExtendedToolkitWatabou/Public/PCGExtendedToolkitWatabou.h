@@ -6,10 +6,23 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FPCGExtendedToolkitWatabouModule final : public IModuleInterface
+namespace PCGExWatabouImporter
 {
+	class IImporter;
+}
+
+class PCGEXTENDEDTOOLKITWATABOU_API FPCGExtendedToolkitWatabouModule final : public IModuleInterface
+{
+	using FCreateFunc = TFunction<TSharedPtr<PCGExWatabouImporter::IImporter>()>;
+
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+	void RegisterImporter(FName Name, int32 Version, FCreateFunc Func);
+	TSharedPtr<PCGExWatabouImporter::IImporter> CreateImporter(const FName Name, const int32 Version);
+
+private:
+	TMap<FName, TSharedPtr<TMap<int32, FCreateFunc>>> GeneratorRegistry;
 };
