@@ -15,7 +15,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouVersion
 
 	UPROPERTY()
 	int32 Version = 0;
-
+	
 	FPCGExWatabouVersion() = default;
 	explicit FPCGExWatabouVersion(const FString& InSemVer);
 	explicit FPCGExWatabouVersion(const int32& InVersion);
@@ -34,6 +34,7 @@ namespace PCGExWatabou
 	const FName GeneratorId_Hood = FName("Hood");
 	const FName GeneratorId_OPD = FName("OPD");
 
+	const FString FeatureTypeFeature = TEXT("Feature");
 	const FString FeatureTypePolygon = TEXT("Polygon");
 	const FString FeatureTypePoint = TEXT("Point");
 	const FString FeatureTypeLineString = TEXT("LineString");

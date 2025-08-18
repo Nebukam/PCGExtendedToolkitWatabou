@@ -25,12 +25,6 @@ FPCGExWatabouFeaturePolygon::FPCGExWatabouFeaturePolygon(const FName InId, const
 	Elements.Reserve(InReserve);
 }
 
-FPCGExWatabouFeatureMultiPolygon::FPCGExWatabouFeatureMultiPolygon(const FName InId, const int32 InReserve)
-: FPCGExWatabouFeature(InId)
-{
-	Elements.Reserve(InReserve);
-}
-
 FPCGExWatabouFeatureLineString::FPCGExWatabouFeatureLineString(const FName InId, const int32 InReserve)
 : FPCGExWatabouFeature(InId)
 {
@@ -48,10 +42,9 @@ void UPCGExWatabouFeaturesCollection::Reset()
 	LineStrings.Empty();
 	MultiLineStrings.Empty();
 	Polygons.Empty();
-	MultiPolygons.Empty();
 	Points.Empty();
 	MultiPoints.Empty();
-	Collections.Empty();
+	SubCollections.Empty();
 }
 
 bool UPCGExWatabouFeaturesCollection::IsValidCollection() const
@@ -60,8 +53,7 @@ bool UPCGExWatabouFeaturesCollection::IsValidCollection() const
 		!(LineStrings.IsEmpty() &&
 			MultiLineStrings.IsEmpty() &&
 			Polygons.IsEmpty() &&
-			MultiPolygons.IsEmpty() &&
 			Points.IsEmpty() &&
 			MultiPoints.IsEmpty() &&
-			Collections.IsEmpty());
+			SubCollections.IsEmpty());
 }

@@ -30,11 +30,11 @@ public:
 	UAssetImportData* AssetImportData;
 #endif
 
-	UPROPERTY(Instanced)
+	UPROPERTY(EditAnywhere, Instanced, Category = Data)
 	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Data|Details")
 	FBox Bounds = FBox(NoInit);
-
+		
 	void Reset();
 };

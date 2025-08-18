@@ -18,7 +18,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
 	FPCGExWatabouFeature() = default;
 	explicit FPCGExWatabouFeature(const FName InId);
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	UPROPERTY(EditAnywhere, Category=Settings, meta=(DisplayPriority=-1))
 	FName Id = NAME_None;
 };
 
@@ -72,21 +72,6 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeaturePolygon : public FPCGEx
  * 
  */
 USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiPolygon : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
-
-	FPCGExWatabouFeatureMultiPolygon() = default;
-	explicit FPCGExWatabouFeatureMultiPolygon(const FName InId, const int32 InReserve = 0);
-
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeaturePolygon> Elements;
-};
-
-/**
- * 
- */
-USTRUCT()
 struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureLineString : public FPCGExWatabouFeature
 {
 	GENERATED_BODY()
@@ -124,29 +109,38 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UOb
 public:
 	UPCGExWatabouFeaturesCollection() = default;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	UPROPERTY(EditAnywhere, Category=Data)
 	FName Id = NAME_None;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	/** Isolated segments elements */
+	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeatureLineString> LineStrings;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	/** Path-like elements */
+	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeatureMultiLineString> MultiLineStrings;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	/** Areas */
+	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeaturePolygon> Polygons;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeatureMultiPolygon> MultiPolygons;
-
-	UPROPERTY(EditAnywhere, Category=Settings)
+	/** Singular points, rare occurence */
+	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeaturePoint> Points;
 
-	UPROPERTY(EditAnywhere, Category=Settings)
+	/** Single elements, a.k.a trees */
+	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeatureMultiPoint> MultiPoints;
 
-	UPROPERTY(EditAnywhere, Instanced, Category=Settings)
-	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> Collections;
+	/** Sub-collections of elements */
+	UPROPERTY(EditAnywhere, Instanced, Category=Data, meta=(TitleProperty="{Id}"))
+	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> SubCollections;
+
+	UPROPERTY(EditAnywhere, Category = Data)
+	double RoadWidth = 0;
+
+	UPROPERTY(EditAnywhere, Category = Data)
+	double WallThickness = 0;
 
 	void Reset();
 	bool IsValidCollection() const;

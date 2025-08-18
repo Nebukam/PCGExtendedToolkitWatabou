@@ -54,6 +54,17 @@ namespace PCGExWatabouImporter
 			FeatureObj->TryGetStringField(TEXT("id"), FeatureId);
 			if (FeatureObj->TryGetStringField(TEXT("type"), FeatureType))
 			{
+				UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *FeatureType, *FeatureId)
+
+				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
+				{
+					// Top-level settings, contains some generic values such as road thickness etc
+					double OuValue = 0;
+					if (FeatureObj->TryGetNumberField(TEXT("wallThickness"), OuValue)) { InCollection->WallThickness = OuValue; }
+					if (FeatureObj->TryGetNumberField(TEXT("roadWidth"), OuValue)) { InCollection->RoadWidth = OuValue; }
+					continue;
+				}
+
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection)
 				{
 					UPCGExWatabouFeaturesCollection* NewGeometryCollection = NewObject<UPCGExWatabouFeaturesCollection>();
@@ -62,7 +73,7 @@ namespace PCGExWatabouImporter
 					if (NewGeometryCollection->IsValidCollection())
 					{
 						NewGeometryCollection->Id = FName(FeatureId);
-						InCollection->Collections.Add(NewGeometryCollection);
+						InCollection->SubCollections.Add(NewGeometryCollection);
 					}
 
 					continue;
@@ -72,7 +83,7 @@ namespace PCGExWatabouImporter
 				if (!FeatureObj->TryGetArrayField(TEXT("coordinates"), Coordinates)) { continue; }
 
 				const int32 NumCoordinates = Coordinates ? Coordinates->Num() : 0;
-				
+
 				if (FeatureType == PCGExWatabou::FeatureTypePoint)
 				{
 				}
@@ -97,69 +108,73 @@ namespace PCGExWatabouImporter
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeLineString)
-				{					
+				{
 					FPCGExWatabouFeatureLineString& NewString = InCollection->LineStrings.Emplace_GetRef(FName(FeatureId), NumCoordinates);
 					if (!Build(NewString, *Coordinates)) { InCollection->LineStrings.RemoveAt(InCollection->LineStrings.Num() - 1); }
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiLineString)
 				{
-					if (!Coordinates) { continue; }
-					
-					for (const TSharedPtr<FJsonValue>& LineList : *Coordinates)
+					FPCGExWatabouFeatureMultiLineString& NewMultiString = InCollection->MultiLineStrings.Emplace_GetRef(FName(FeatureId), NumCoordinates);
+
+					for (const TSharedPtr<FJsonValue>& PathObj : *Coordinates)
 					{
-						const TArray<TSharedPtr<FJsonValue>>& LineListAsArray = LineList->AsArray();
-						for (const TSharedPtr<FJsonValue>& SubCoordinates : LineListAsArray)
-						{
-							const TArray<TSharedPtr<FJsonValue>>& LineCoordsAsArray = SubCoordinates->AsArray();
+						const TArray<TSharedPtr<FJsonValue>>& PathPoints = PathObj->AsArray();
 
-							const int32 NumCoords = LineCoordsAsArray.Num();
-							if (!NumCoords) { continue; }
+						const int32 NumCoords = PathPoints.Num();
+						if (!NumCoords) { continue; }
 
-							FPCGExWatabouFeatureLineString& NewString = InCollection->LineStrings.Emplace_GetRef(FName(FeatureId), NumCoords);
-							if (!Build(NewString, *Coordinates)) { InCollection->LineStrings.RemoveAt(InCollection->LineStrings.Num() - 1); }
-						}
+						FPCGExWatabouFeatureLineString& NewString = NewMultiString.Elements.Emplace_GetRef(FName(FeatureId), NumCoords);
+						if (!Build(NewString, PathPoints)) { NewMultiString.Elements.RemoveAt(NewMultiString.Elements.Num() - 1); }
 					}
+
+					if (NewMultiString.Elements.IsEmpty()) { InCollection->MultiLineStrings.RemoveAt(InCollection->MultiLineStrings.Num() - 1); }
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypePolygon)
 				{
-					FPCGExWatabouFeaturePolygon& NewPolygon = InCollection->Polygons.Emplace_GetRef(FName(FeatureId), NumCoordinates);
-
-					if (!Build(NewPolygon, *Coordinates))
+					for (const TSharedPtr<FJsonValue>& VerticesObj : *Coordinates)
 					{
-						InCollection->Polygons.RemoveAt(InCollection->Polygons.Num() - 1);
-						continue;
-					}
+						const TArray<TSharedPtr<FJsonValue>>& Vertices = VerticesObj->AsArray();
 
-					if (FeatureId == TEXT("earth"))
-					{
-						// Special polygon representing world bounds
-						if (InData)
+						const int32 NumCoords = Vertices.Num();
+						FPCGExWatabouFeaturePolygon& NewPolygon = InCollection->Polygons.Emplace_GetRef(FName(FeatureId), NumCoords);
+
+						if (!Build(NewPolygon, Vertices))
 						{
-							FBox Bounds = FBox(ForceInit);
-							for (FVector2D& Point : NewPolygon.Elements) { Bounds += FVector(Point, 0); }
+							InCollection->Polygons.RemoveAt(InCollection->Polygons.Num() - 1);
+							continue;
+						}
 
-							// Pad Z
-							Bounds += FVector(0, 0, -1);
-							Bounds += FVector(0, 0, 1);
+						if (FeatureId == TEXT("earth"))
+						{
+							// Special polygon representing world bounds
+							if (InData)
+							{
+								FBox Bounds = FBox(ForceInit);
+								for (FVector2D& Point : NewPolygon.Elements) { Bounds += FVector(Point, 0); }
 
-							InData->Bounds = Bounds;
+								// Pad Z
+								Bounds += FVector(0, 0, -1);
+								Bounds += FVector(0, 0, 1);
+
+								InData->Bounds = Bounds;
+							}
 						}
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiPolygon)
-				{					
-					for (const TSharedPtr<FJsonValue>& PolyList : *Coordinates)
+				{
+					for (const TSharedPtr<FJsonValue>& PolygonsObj : *Coordinates)
 					{
-						const TArray<TSharedPtr<FJsonValue>>& PolyListAsArray = PolyList->AsArray();
-						for (const TSharedPtr<FJsonValue>& SubCoordinates : PolyListAsArray)
+						const TArray<TSharedPtr<FJsonValue>>& Polygons = PolygonsObj->AsArray();
+						for (const TSharedPtr<FJsonValue>& VerticesObj : Polygons)
 						{
-							const TArray<TSharedPtr<FJsonValue>>& PolyCoordsAsArray = SubCoordinates->AsArray();
+							const TArray<TSharedPtr<FJsonValue>>& Vertices = VerticesObj->AsArray();
 
-							const int32 NumCoords = PolyCoordsAsArray.Num();
+							const int32 NumCoords = Vertices.Num();
 							if (!NumCoords) { continue; }
 
 							FPCGExWatabouFeaturePolygon& NewPolygon = InCollection->Polygons.Emplace_GetRef(FName(FeatureId), NumCoords);
-							if (!Build(NewPolygon, PolyCoordsAsArray)) { InCollection->Polygons.RemoveAt(InCollection->Polygons.Num() - 1); }
+							if (!Build(NewPolygon, Vertices)) { InCollection->Polygons.RemoveAt(InCollection->Polygons.Num() - 1); }
 						}
 					}
 				}

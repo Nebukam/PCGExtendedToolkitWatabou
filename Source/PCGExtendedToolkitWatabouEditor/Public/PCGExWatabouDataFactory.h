@@ -18,7 +18,7 @@ class PCGEXTENDEDTOOLKITWATABOUEDITOR_API UPCGExWatabouDataFactory : public UFac
 
 public:
 	UPCGExWatabouDataFactory();
-	
+
 	virtual UObject* FactoryCreateFile(
 		UClass* InClass,
 		UObject* InParent,
@@ -41,7 +41,7 @@ class UPCGExWatabouDataReimportFactory : public UPCGExWatabouDataFactory, public
 
 public:
 	UPCGExWatabouDataReimportFactory();
-	
+
 	virtual bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames) override;
 	virtual void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths) override;
 	virtual EReimportResult::Type Reimport(UObject* Obj) override;
