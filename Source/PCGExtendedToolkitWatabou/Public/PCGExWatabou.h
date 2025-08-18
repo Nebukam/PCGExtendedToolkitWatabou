@@ -40,6 +40,6 @@ namespace PCGExWatabou
 	const FString FeatureTypeMultiPolygon = TEXT("MultiPolygon");
 	const FString FeatureTypeMultiPoint = TEXT("MultiPoint");
 	const FString FeatureTypeMultiLineString = TEXT("MultiLineString");
-
 	const FString FeatureTypeGeometryCollection = TEXT("GeometryCollection");
+	
 }

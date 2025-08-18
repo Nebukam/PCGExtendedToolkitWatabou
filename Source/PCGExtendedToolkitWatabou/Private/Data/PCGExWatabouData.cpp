@@ -12,7 +12,7 @@ UPCGExWatabouData::UPCGExWatabouData()
 	AssetImportData = CreateDefaultSubobject<UAssetImportData>(TEXT("AssetImportData"));
 #endif
 
-	Features = CreateDefaultSubobject<UPCGExWatabouFeatureGeometryCollection>(TEXT("Features"));
+	Features = CreateDefaultSubobject<UPCGExWatabouFeaturesCollection>(TEXT("Features"));
 }
 
 void UPCGExWatabouData::Reset()

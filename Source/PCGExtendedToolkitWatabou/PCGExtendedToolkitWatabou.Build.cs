@@ -30,7 +30,8 @@ public class PCGExtendedToolkitWatabou : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
-				"PCGExtendedToolkit"
+				"PCGExtendedToolkit",
+				"Json"
 			}
 		);
 

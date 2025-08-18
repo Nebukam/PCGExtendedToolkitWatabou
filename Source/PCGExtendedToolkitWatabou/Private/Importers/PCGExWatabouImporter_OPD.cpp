@@ -7,11 +7,12 @@
 
 
 
+
 namespace PCGExWatabouImporter
 {
-	void Importer_OPD::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouData* InOutData)
+	void Importer_OPD::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
 	{
-		IImporter::Build(InJson, InOutData);
+		IImporter::Build(InJson, InCollection, InData);
 	}
 }
 

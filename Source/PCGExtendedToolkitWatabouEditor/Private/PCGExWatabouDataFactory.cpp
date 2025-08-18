@@ -5,6 +5,7 @@
 #include "Editor.h"
 #include "PCGExtendedToolkitWatabou.h"
 #include "Data/PCGExWatabouData.h"
+#include "Data/PCGExWatabouFeature.h"
 #include "Importers/PCGExWatabouImporter.h"
 
 
@@ -18,11 +19,17 @@ UPCGExWatabouDataFactory::UPCGExWatabouDataFactory()
 
 UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled)
 {
+#define PCGEX_WATABOU_FACTORY_CANCEL \
+	bOutOperationCanceled = true; \
+	return nullptr;
+
+	UE_LOG(LogPCGExWatabou, Log, TEXT("Importing %s"), *Filename)
+
 	FString FileContents;
 	if (!FFileHelper::LoadFileToString(FileContents, *Filename))
 	{
-		bOutOperationCanceled = true;
-		return nullptr;
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Could not load as string %s"), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
 	}
 
 	// Parse JSON
@@ -31,38 +38,42 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 
 	if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
 	{
-		bOutOperationCanceled = true;
-		return nullptr;
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Could not deserialize %s"), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
 	}
 
 	FName GenName = NAME_None;
 	FPCGExWatabouVersion GenVersion = FPCGExWatabouVersion(0);
 
-	const TArray<TSharedPtr<FJsonValue>>* FeaturesArray;
-	if (JsonObject->TryGetArrayField(TEXT("features"), FeaturesArray))
+	if (JsonObject->HasField(TEXT("features")))
 	{
 		// If we have a feature array this narrows down the types of data to VG/MFCG/Hood
-		// Find the feature object
-		for (auto& FeatureValue : *FeaturesArray)
+		const TArray<TSharedPtr<FJsonValue>>* FeaturesArray;
+		if (JsonObject->TryGetArrayField(TEXT("features"), FeaturesArray))
 		{
-			TSharedPtr<FJsonObject> FeatureObj = FeatureValue->AsObject();
-			if (!FeatureObj) continue;
-
-			FString TypeId;
-			FString IdId;
-			FString GeneratorId;
-			FString GeneratorVersion;
-
-			if (FeatureObj->TryGetStringField(TEXT("type"), TypeId) &&
-				FeatureObj->TryGetStringField(TEXT("id"), IdId) &&
-				FeatureObj->TryGetStringField(TEXT("generator"), GeneratorId) &&
-				FeatureObj->TryGetStringField(TEXT("version"), GeneratorVersion))
+			// Find the feature object
+			// It should always come first, but since it's an array and people might be cobling data together 
+			for (const TSharedPtr<FJsonValue>& FeatureValue : *FeaturesArray)
 			{
-				if (TypeId == TEXT("Features") && IdId == TEXT("values"))
+				TSharedPtr<FJsonObject> FeatureObj = FeatureValue->AsObject();
+				if (!FeatureObj) continue;
+
+				FString TypeId;
+				FString IdId;
+				FString GeneratorId;
+				FString GeneratorVersion;
+
+				if (FeatureObj->TryGetStringField(TEXT("type"), TypeId) &&
+					FeatureObj->TryGetStringField(TEXT("id"), IdId) &&
+					FeatureObj->TryGetStringField(TEXT("generator"), GeneratorId) &&
+					FeatureObj->TryGetStringField(TEXT("version"), GeneratorVersion))
 				{
-					GenName = FName(GeneratorId);
-					GenVersion = FPCGExWatabouVersion(GeneratorVersion);
-					break;
+					if (TypeId == TEXT("Feature") && IdId == TEXT("values"))
+					{
+						GenName = FName(GeneratorId);
+						GenVersion = FPCGExWatabouVersion(GeneratorVersion);
+						break;
+					}
 				}
 			}
 		}
@@ -72,15 +83,25 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 		// Possibly OPD ?
 	}
 
+	if (GenName.IsNone())
+	{
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Could not find an importer for file : %s"), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
+	}
+
 	FPCGExtendedToolkitWatabouModule* ModulePtr = FModuleManager::GetModulePtr<FPCGExtendedToolkitWatabouModule>("PCGExtendedToolkitWatabou");
-	if (!ModulePtr) { return nullptr; }
+	if (!ModulePtr)
+	{
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Can't find Watabou Module : %s"), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
+	}
 
 	TSharedPtr<PCGExWatabouImporter::IImporter> ImporterInstance = ModulePtr->CreateImporter(GenName, GenVersion);
 
 	if (!ModulePtr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Could not find valid importer for Generator '%s', version '%d'"), *GenName.ToString(), static_cast<int32>(GenVersion))
-		return nullptr;
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Could not find valid importer for Generator '%s' (%d) (%s)"), *GenName.ToString(), static_cast<int32>(GenVersion), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
 	}
 
 	// Create the asset
@@ -90,14 +111,26 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 	if (!NewAsset->AssetImportData) { NewAsset->AssetImportData = NewObject<UAssetImportData>(NewAsset); }
 	NewAsset->AssetImportData->Update(Filename);
 
-	ImporterInstance->Build(JsonObject, NewAsset);
+	// Reset and build
+	NewAsset->Reset();
+	ImporterInstance->Build(JsonObject, NewAsset->Features, NewAsset);
 
+	if (!NewAsset->Features->IsValidCollection())
+	{
+		UE_LOG(LogPCGExWatabou, Error, TEXT("Used Generator '%s' (%d), but found no valid data. (%s)"), *GenName.ToString(), static_cast<int32>(GenVersion), *Filename)
+		PCGEX_WATABOU_FACTORY_CANCEL
+	}
+
+	UE_LOG(LogPCGExWatabou, Log, TEXT("Successfully imported %s"), *Filename)
 	return NewAsset;
+
+#undef PCGEX_WATABOU_FACTORY_CANCEL
 }
 
 UPCGExWatabouDataReimportFactory::UPCGExWatabouDataReimportFactory()
 {
 	SupportedClass = UPCGExWatabouData::StaticClass();
+	ImportPriority = DefaultImportPriority - 1; // must be lower than main factory
 }
 
 bool UPCGExWatabouDataReimportFactory::CanReimport(UObject* Obj, TArray<FString>& OutFilenames)

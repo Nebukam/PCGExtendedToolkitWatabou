@@ -8,6 +8,7 @@
 
 
 
+
 namespace PCGExWatabouImporter
 {
 	class PCGEXTENDEDTOOLKITWATABOU_API Importer_OPD : public IImporter
@@ -15,6 +16,6 @@ namespace PCGExWatabouImporter
 	public:
 		Importer_OPD() = default;
 
-		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouData* InOutData) override;
+		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData) override;
 	};
 }

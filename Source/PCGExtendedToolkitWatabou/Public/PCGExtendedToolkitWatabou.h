@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogPCGExWatabou, Log, All)
+
 namespace PCGExWatabouImporter
 {
 	class IImporter;

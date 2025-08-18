@@ -12,7 +12,7 @@
 
 #include "PCGExWatabouData.generated.h"
 
-class UPCGExWatabouFeatureGeometryCollection;
+class UPCGExWatabouFeaturesCollection;
 /**
  * 
  */
@@ -31,7 +31,10 @@ public:
 #endif
 
 	UPROPERTY(Instanced)
-	TObjectPtr<UPCGExWatabouFeatureGeometryCollection> Features;
+	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;
+
+	UPROPERTY(VisibleAnywhere)
+	FBox Bounds = FBox(NoInit);
 
 	void Reset();
 };

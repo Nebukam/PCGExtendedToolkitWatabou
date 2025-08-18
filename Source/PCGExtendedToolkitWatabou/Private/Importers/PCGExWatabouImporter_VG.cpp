@@ -7,11 +7,12 @@
 
 
 
+
 namespace PCGExWatabouImporter
 {
-	void Importer_VG::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouData* InOutData)
+	void Importer_VG::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
 	{
-		IGeometryImporter::Build(InJson, InOutData);
+		IGeometryImporter::Build(InJson, InCollection, InData);
 	}
 }
 

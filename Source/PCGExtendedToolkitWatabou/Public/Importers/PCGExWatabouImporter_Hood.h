@@ -15,6 +15,6 @@ namespace PCGExWatabouImporter
 	public:
 		Importer_Hood() = default;
 
-		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouData* InOutData) override;
+		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData) override;
 	};
 }

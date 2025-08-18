@@ -16,6 +16,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
 	GENERATED_BODY()
 
 	FPCGExWatabouFeature() = default;
+	explicit FPCGExWatabouFeature(const FName InId);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
 	FName Id = NAME_None;
@@ -30,9 +31,11 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeaturePoint : public FPCGExWa
 	GENERATED_BODY()
 
 	FPCGExWatabouFeaturePoint() = default;
+	explicit FPCGExWatabouFeaturePoint(const FName InId);
+
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	FVector Location = FVector::ZeroVector;
+	FVector2D Location = FVector2D::ZeroVector;
 };
 
 /**
@@ -44,9 +47,10 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiPoint : public FPC
 	GENERATED_BODY()
 
 	FPCGExWatabouFeatureMultiPoint() = default;
+	explicit FPCGExWatabouFeatureMultiPoint(const FName InId, const int32 InReserve = 0);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeaturePoint> Points;
+	TArray<FVector2D> Elements;
 };
 
 /**
@@ -58,9 +62,10 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeaturePolygon : public FPCGEx
 	GENERATED_BODY()
 
 	FPCGExWatabouFeaturePolygon() = default;
+	explicit FPCGExWatabouFeaturePolygon(const FName InId, const int32 InReserve = 0);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FVector> Polygon;
+	TArray<FVector2D> Elements;
 };
 
 /**
@@ -72,9 +77,10 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiPolygon : public F
 	GENERATED_BODY()
 
 	FPCGExWatabouFeatureMultiPolygon() = default;
+	explicit FPCGExWatabouFeatureMultiPolygon(const FName InId, const int32 InReserve = 0);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeaturePolygon> Polygons;
+	TArray<FPCGExWatabouFeaturePolygon> Elements;
 };
 
 /**
@@ -86,9 +92,10 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureLineString : public FPC
 	GENERATED_BODY()
 
 	FPCGExWatabouFeatureLineString() = default;
+	explicit FPCGExWatabouFeatureLineString(const FName InId, const int32 InReserve = 0);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FVector> Positions;
+	TArray<FVector2D> Elements;
 };
 
 /**
@@ -100,21 +107,25 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiLineString : publi
 	GENERATED_BODY()
 
 	FPCGExWatabouFeatureMultiLineString() = default;
+	explicit FPCGExWatabouFeatureMultiLineString(const FName InId, const int32 InReserve = 0);
 
 	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeatureLineString> Lines;
+	TArray<FPCGExWatabouFeatureLineString> Elements;
 };
 
 /**
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeatureGeometryCollection : public UObject
+class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExWatabouFeatureGeometryCollection() = default;
+	UPCGExWatabouFeaturesCollection() = default;
+
+	UPROPERTY(EditAnywhere, Category=Settings)
+	FName Id = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category=Settings)
 	TArray<FPCGExWatabouFeatureLineString> LineStrings;
@@ -135,7 +146,8 @@ public:
 	TArray<FPCGExWatabouFeatureMultiPoint> MultiPoints;
 
 	UPROPERTY(EditAnywhere, Instanced, Category=Settings)
-	TArray<TObjectPtr<UPCGExWatabouFeatureGeometryCollection>> Collections;
+	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> Collections;
 
 	void Reset();
+	bool IsValidCollection() const;
 };
