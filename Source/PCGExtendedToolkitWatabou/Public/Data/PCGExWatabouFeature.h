@@ -79,6 +79,9 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureLineString : public FPC
 	FPCGExWatabouFeatureLineString() = default;
 	explicit FPCGExWatabouFeatureLineString(const FName InId, const int32 InReserve = 0);
 
+	UPROPERTY(EditAnywhere, Category = Data)
+	double Width = 0;
+	
 	UPROPERTY(EditAnywhere, Category=Settings)
 	TArray<FVector2D> Elements;
 };

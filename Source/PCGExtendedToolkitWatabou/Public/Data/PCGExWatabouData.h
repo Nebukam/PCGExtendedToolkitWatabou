@@ -24,12 +24,6 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouData : public UDataAsset
 public:
 	UPCGExWatabouData();
 
-#if WITH_EDITORONLY_DATA
-	// Standard property to hold the source file info
-	UPROPERTY(VisibleAnywhere, Instanced, Category = "Import")
-	UAssetImportData* AssetImportData;
-#endif
-
 	UPROPERTY(EditAnywhere, Instanced, Category = Data)
 	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;
 
@@ -37,4 +31,15 @@ public:
 	FBox Bounds = FBox(NoInit);
 		
 	void Reset();
+
+#if WITH_EDITORONLY_DATA
+	// Import data for this 
+	UPROPERTY(VisibleAnywhere, Instanced, Category=ImportSettings)
+	TObjectPtr<class UAssetImportData> AssetImportData;
+	
+	// UObject interface
+	virtual void PostInitProperties() override;
+	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
+	// End of UObject interface
+#endif
 };

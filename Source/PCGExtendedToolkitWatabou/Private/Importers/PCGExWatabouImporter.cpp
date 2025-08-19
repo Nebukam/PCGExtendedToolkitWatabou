@@ -54,8 +54,6 @@ namespace PCGExWatabouImporter
 			FeatureObj->TryGetStringField(TEXT("id"), FeatureId);
 			if (FeatureObj->TryGetStringField(TEXT("type"), FeatureType))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *FeatureType, *FeatureId)
-
 				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
 				{
 					// Top-level settings, contains some generic values such as road thickness etc
@@ -67,11 +65,14 @@ namespace PCGExWatabouImporter
 
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection)
 				{
-					UPCGExWatabouFeaturesCollection* NewGeometryCollection = NewObject<UPCGExWatabouFeaturesCollection>();
+					UPCGExWatabouFeaturesCollection* NewGeometryCollection = NewObject<UPCGExWatabouFeaturesCollection>(InCollection);
 					Build(FeatureObj, NewGeometryCollection, InData);
 
 					if (NewGeometryCollection->IsValidCollection())
 					{
+						NewGeometryCollection->SetFlags(RF_Transactional);
+						NewGeometryCollection->MarkPackageDirty();
+						
 						NewGeometryCollection->Id = FName(FeatureId);
 						InCollection->SubCollections.Add(NewGeometryCollection);
 					}

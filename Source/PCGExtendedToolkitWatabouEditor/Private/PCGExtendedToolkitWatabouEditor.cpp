@@ -5,6 +5,10 @@
 
 #include "PCGExtendedToolkitWatabouEditor.h"
 
+#include "AssetTypeActions_Base.h"
+#include "EditorReimportHandler.h"
+#include "PCGExWatabouDataFactory.h"
+#include "PCGExWatabouScriptActions.h"
 #include "Styling/SlateStyle.h"
 #include "Interfaces/IPluginManager.h"
 #include "AssetRegistry/AssetData.h"
@@ -17,9 +21,9 @@ Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentD
 
 void FPCGExtendedToolkitWatabouEditorModule::StartupModule()
 {
-	// I know this is cursed
-	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
-
+	DataActions = MakeShared<FPCGExWatabouScriptActions>();
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(DataActions.ToSharedRef());
+	
 	Style = MakeShared<FSlateStyleSet>("PCGExWatabouStyleSet");
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkitWatabou"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons"));
 
@@ -29,14 +33,15 @@ void FPCGExtendedToolkitWatabouEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExWatabouData)
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
+
 }
 
 #undef PCGEX_ADD_ICON
 
 void FPCGExtendedToolkitWatabouEditorModule::ShutdownModule()
 {
-	//FSlateStyleRegistry::UnRegisterSlateStyle(Style->GetStyleSetName());
-	//Style.Reset();
+	FSlateStyleRegistry::UnRegisterSlateStyle(Style->GetStyleSetName());
+	Style.Reset();
 }
 
 #undef LOCTEXT_NAMESPACE

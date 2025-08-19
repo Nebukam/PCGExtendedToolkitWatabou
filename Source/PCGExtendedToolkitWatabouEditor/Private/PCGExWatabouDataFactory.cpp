@@ -1,5 +1,6 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
+
 #include "PCGExWatabouDataFactory.h"
 
 #include "Editor.h"
@@ -106,6 +107,7 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 
 	// Create the asset
 	UPCGExWatabouData* NewAsset = NewObject<UPCGExWatabouData>(InParent, InClass, InName, Flags);
+	NewAsset->Features->Id = FName(Filename);
 
 	// Assign AssetImportData for reimport
 	if (!NewAsset->AssetImportData) { NewAsset->AssetImportData = NewObject<UAssetImportData>(NewAsset); }
@@ -130,6 +132,7 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 UPCGExWatabouDataReimportFactory::UPCGExWatabouDataReimportFactory()
 {
 	SupportedClass = UPCGExWatabouData::StaticClass();
+	bCreateNew = true;
 	ImportPriority = DefaultImportPriority - 1; // must be lower than main factory
 }
 
@@ -159,9 +162,17 @@ void UPCGExWatabouDataReimportFactory::SetReimportPaths(UObject* Obj, const TArr
 
 EReimportResult::Type UPCGExWatabouDataReimportFactory::Reimport(UObject* Obj)
 {
-	if (!Obj) return EReimportResult::Failed;
+	if (!Obj)
+	{
+		return EReimportResult::Failed;
+	}
+
 	UPCGExWatabouData* Asset = Cast<UPCGExWatabouData>(Obj);
-	if (!Asset || !Asset->AssetImportData) return EReimportResult::Failed;
+
+	if (!Asset || !Asset->AssetImportData)
+	{
+		return EReimportResult::Failed;
+	}
 
 	FString Filename = Asset->AssetImportData->GetFirstFilename();
 	bool bCanceled = false;
@@ -177,4 +188,9 @@ EReimportResult::Type UPCGExWatabouDataReimportFactory::Reimport(UObject* Obj)
 		);
 
 	return Reimported ? EReimportResult::Succeeded : EReimportResult::Failed;
+}
+
+int32 UPCGExWatabouDataReimportFactory::GetPriority() const
+{
+	return ImportPriority;
 }
