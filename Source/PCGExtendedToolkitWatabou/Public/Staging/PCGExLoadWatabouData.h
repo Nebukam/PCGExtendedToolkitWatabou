@@ -20,7 +20,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(LoadWatabouData, "Load Watabou Data", "Load & Read watabou data and output points, paths & clusters.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::InputOutput; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives); }
 #endif
 
 protected:
@@ -31,18 +32,18 @@ protected:
 #if WITH_EDITOR
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
-	
+
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual bool IsInputless() const override{return true;}
+	virtual bool IsInputless() const override { return true; }
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExWatabouData> DataAsset;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> IdToPins;
@@ -56,15 +57,15 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double GlobalScale = 1;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bDoPointifyPolygons = false;
-	
+
 	/** If enabled, polygons with the specified identifiers will be output as bounds instead of paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoPointifyPolygons"))
-	TSet<FName> PointifyPolygons = { TEXT("buildings") };
-	
+	TSet<FName> PointifyPolygons = {TEXT("buildings")};
+
 	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -78,7 +79,7 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 	friend class FPCGExLoadWatabouDataElement;
 
 	~FPCGExLoadWatabouDataContext();
-	
+
 	UPCGExWatabouData* WatabouData = nullptr;
 
 protected:
@@ -99,5 +100,4 @@ protected:
 
 namespace PCGExLoadWatabouData
 {
-	
 }

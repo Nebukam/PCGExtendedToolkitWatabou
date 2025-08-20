@@ -45,6 +45,8 @@ void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
 	UPCGExWatabouData* WatabouData = DataAsset.LoadSynchronous();
 	if (!WatabouData) { return; }
 
+	Modify(true);
+	
 	IdToPins.Empty();
 
 	for (const TPair<FPCGExFeatureIdentifier, int32>& Pair : WatabouData->Identifiers)
@@ -53,6 +55,9 @@ void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
 		IdToPins.Add(Pair.Key.Id);
 	}
 
+	FPropertyChangedEvent EmptyEvent(nullptr);
+	PostEditChangeProperty(EmptyEvent);
+	
 	MarkPackageDirty();
 }
 #endif
