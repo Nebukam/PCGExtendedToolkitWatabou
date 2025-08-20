@@ -7,104 +7,78 @@
 
 #include "PCGExWatabouFeature.generated.h"
 
+UENUM(BlueprintType)
+enum class EPCGExWatabouFeatureType : uint8
+{
+	Unknown     = 0,
+	Point       = 1,
+	MultiPoints = 2,
+	LineString  = 3,
+	Polygon     = 5,
+	Collection  = 42,
+};
+
 /**
  * 
  */
-USTRUCT()
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
+{
+	GENERATED_BODY()
+
+	FPCGExFeatureIdentifier() = default;
+	FPCGExFeatureIdentifier(const EPCGExWatabouFeatureType InType, const FName InId);
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	EPCGExWatabouFeatureType Type = EPCGExWatabouFeatureType::Unknown;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	FName Id = NAME_None;
+
+	bool operator==(const FPCGExFeatureIdentifier& Other) const
+	{
+		return Other.Id == Id && Other.Type == Type;
+	}
+	
+	FORCEINLINE friend uint32 GetTypeHash(const FPCGExFeatureIdentifier InIdentifier)
+	{
+		return HashCombineFast(GetTypeHash(InIdentifier.Id), GetTypeHash(InIdentifier.Type));
+	}
+};
+
+/**
+ * 
+ */
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
 {
 	GENERATED_BODY()
 
 	FPCGExWatabouFeature() = default;
-	explicit FPCGExWatabouFeature(const FName InId);
+	FPCGExWatabouFeature(const EPCGExWatabouFeatureType InType, const FName InId);
 
-	UPROPERTY(EditAnywhere, Category=Settings, meta=(DisplayPriority=-1))
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	EPCGExWatabouFeatureType Type = EPCGExWatabouFeatureType::Unknown;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
 	FName Id = NAME_None;
-};
 
-/**
- * 
- */
-USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeaturePoint : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	FString Name = TEXT("");
 
-	FPCGExWatabouFeaturePoint() = default;
-	explicit FPCGExWatabouFeaturePoint(const FName InId);
-
-
-	UPROPERTY(EditAnywhere, Category=Settings)
-	FVector2D Location = FVector2D::ZeroVector;
-};
-
-/**
- * 
- */
-USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiPoint : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
-
-	FPCGExWatabouFeatureMultiPoint() = default;
-	explicit FPCGExWatabouFeatureMultiPoint(const FName InId, const int32 InReserve = 0);
-
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FVector2D> Elements;
-};
-
-/**
- * 
- */
-USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeaturePolygon : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
-
-	FPCGExWatabouFeaturePolygon() = default;
-	explicit FPCGExWatabouFeaturePolygon(const FName InId, const int32 InReserve = 0);
-
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FVector2D> Elements;
-};
-
-/**
- * 
- */
-USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureLineString : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
-
-	FPCGExWatabouFeatureLineString() = default;
-	explicit FPCGExWatabouFeatureLineString(const FName InId, const int32 InReserve = 0);
-
-	UPROPERTY(EditAnywhere, Category = Data)
+	UPROPERTY(VisibleAnywhere, Category=Settings)
 	double Width = 0;
-	
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FVector2D> Elements;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	TArray<FVector2D> Coordinates;
+
+	FPCGExFeatureIdentifier GetIdentifier() const;
 };
 
 /**
  * 
  */
-USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeatureMultiLineString : public FPCGExWatabouFeature
-{
-	GENERATED_BODY()
-
-	FPCGExWatabouFeatureMultiLineString() = default;
-	explicit FPCGExWatabouFeatureMultiLineString(const FName InId, const int32 InReserve = 0);
-
-	UPROPERTY(EditAnywhere, Category=Settings)
-	TArray<FPCGExWatabouFeatureLineString> Elements;
-};
-
-/**
- * 
- */
-UCLASS()
+UCLASS(BlueprintType)
 class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UObject
 {
 	GENERATED_BODY()
@@ -112,38 +86,16 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UOb
 public:
 	UPCGExWatabouFeaturesCollection() = default;
 
-	UPROPERTY(EditAnywhere, Category=Data)
+	UPROPERTY(VisibleAnywhere, Category=Data)
 	FName Id = NAME_None;
 
 	/** Isolated segments elements */
-	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
-	TArray<FPCGExWatabouFeatureLineString> LineStrings;
-
-	/** Path-like elements */
-	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
-	TArray<FPCGExWatabouFeatureMultiLineString> MultiLineStrings;
-
-	/** Areas */
-	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
-	TArray<FPCGExWatabouFeaturePolygon> Polygons;
-
-	/** Singular points, rare occurence */
-	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
-	TArray<FPCGExWatabouFeaturePoint> Points;
-
-	/** Single elements, a.k.a trees */
-	UPROPERTY(EditAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
-	TArray<FPCGExWatabouFeatureMultiPoint> MultiPoints;
+	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} : {Name}"))
+	TArray<FPCGExWatabouFeature> Elements;
 
 	/** Sub-collections of elements */
-	UPROPERTY(EditAnywhere, Instanced, Category=Data, meta=(TitleProperty="{Id}"))
+	UPROPERTY(VisibleAnywhere, Instanced, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> SubCollections;
-
-	UPROPERTY(EditAnywhere, Category = Data)
-	double RoadWidth = 0;
-
-	UPROPERTY(EditAnywhere, Category = Data)
-	double WallThickness = 0;
 
 	void Reset();
 	bool IsValidCollection() const;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExWatabou.h"
+#include "PCGExWatabouFeature.h"
 #include "Engine/DataAsset.h"
 
 #if WITH_EDITOR
@@ -12,7 +13,6 @@
 
 #include "PCGExWatabouData.generated.h"
 
-class UPCGExWatabouFeaturesCollection;
 /**
  * 
  */
@@ -24,10 +24,16 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouData : public UDataAsset
 public:
 	UPCGExWatabouData();
 
-	UPROPERTY(EditAnywhere, Instanced, Category = Data)
+	UPROPERTY(VisibleAnywhere, Category = Data)
+	TMap<FName, double> Values;
+	
+	UPROPERTY(VisibleAnywhere, Category=Data)
+	TSet<FPCGExFeatureIdentifier> Identifiers;
+	
+	UPROPERTY(VisibleAnywhere, Instanced, Category = Data)
 	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;
 
-	UPROPERTY(EditAnywhere, Category = "Data|Details")
+	UPROPERTY(VisibleAnywhere, Category = "Data|Details")
 	FBox Bounds = FBox(NoInit);
 		
 	void Reset();

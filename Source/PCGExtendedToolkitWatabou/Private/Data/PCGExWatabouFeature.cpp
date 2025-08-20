@@ -3,57 +3,28 @@
 
 #include "Data/PCGExWatabouFeature.h"
 
-FPCGExWatabouFeature::FPCGExWatabouFeature(const FName InId)
-	: Id(InId)
+FPCGExFeatureIdentifier::FPCGExFeatureIdentifier(const EPCGExWatabouFeatureType InType, const FName InId)
+	: Type(InType), Id(InId)
 {
 }
 
-FPCGExWatabouFeaturePoint::FPCGExWatabouFeaturePoint(const FName InId)
-	: FPCGExWatabouFeature(InId)
+FPCGExWatabouFeature::FPCGExWatabouFeature(const EPCGExWatabouFeatureType InType, const FName InId)
+	: Type(InType), Id(InId)
 {
 }
 
-FPCGExWatabouFeatureMultiPoint::FPCGExWatabouFeatureMultiPoint(const FName InId, const int32 InReserve)
-	: FPCGExWatabouFeature(InId)
+FPCGExFeatureIdentifier FPCGExWatabouFeature::GetIdentifier() const
 {
-	Elements.Reserve(InReserve);
-}
-
-FPCGExWatabouFeaturePolygon::FPCGExWatabouFeaturePolygon(const FName InId, const int32 InReserve)
-	: FPCGExWatabouFeature(InId)
-{
-	Elements.Reserve(InReserve);
-}
-
-FPCGExWatabouFeatureLineString::FPCGExWatabouFeatureLineString(const FName InId, const int32 InReserve)
-: FPCGExWatabouFeature(InId)
-{
-	Elements.Reserve(InReserve);
-}
-
-FPCGExWatabouFeatureMultiLineString::FPCGExWatabouFeatureMultiLineString(const FName InId, const int32 InReserve)
-: FPCGExWatabouFeature(InId)
-{
-	Elements.Reserve(InReserve);
+	return FPCGExFeatureIdentifier(Type, Id);
 }
 
 void UPCGExWatabouFeaturesCollection::Reset()
 {
-	LineStrings.Empty();
-	MultiLineStrings.Empty();
-	Polygons.Empty();
-	Points.Empty();
-	MultiPoints.Empty();
+	Elements.Empty();
 	SubCollections.Empty();
 }
 
 bool UPCGExWatabouFeaturesCollection::IsValidCollection() const
 {
-	return
-		!(LineStrings.IsEmpty() &&
-			MultiLineStrings.IsEmpty() &&
-			Polygons.IsEmpty() &&
-			Points.IsEmpty() &&
-			MultiPoints.IsEmpty() &&
-			SubCollections.IsEmpty());
+	return !(Elements.IsEmpty() && SubCollections.IsEmpty());
 }

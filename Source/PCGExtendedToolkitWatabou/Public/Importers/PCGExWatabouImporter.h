@@ -7,10 +7,7 @@
 
 #include "CoreMinimal.h"
 
-
-struct FPCGExWatabouFeatureMultiPoint;
-struct FPCGExWatabouFeatureLineString;
-struct FPCGExWatabouFeaturePolygon;
+struct FPCGExWatabouFeature;
 class UPCGExWatabouFeaturesCollection;
 class UPCGExWatabouData;
 
@@ -41,9 +38,7 @@ namespace PCGExWatabouImporter
 		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData) override;
 
 	protected:
-		virtual int32 Build(FPCGExWatabouFeatureMultiPoint& InElement, const TArray<TSharedPtr<FJsonValue>>& InCoordinates);
-		virtual int32 Build(FPCGExWatabouFeatureLineString& InElement, const TArray<TSharedPtr<FJsonValue>>& InCoordinates);
-		virtual int32 Build(FPCGExWatabouFeaturePolygon& InElement, const TArray<TSharedPtr<FJsonValue>>& InCoordinates);
+		virtual int32 Build(FPCGExWatabouFeature& InElement, const TArray<TSharedPtr<FJsonValue>>& InCoordinates);
 	};
 
 }
