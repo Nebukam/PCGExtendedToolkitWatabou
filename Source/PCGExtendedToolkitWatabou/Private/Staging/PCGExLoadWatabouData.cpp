@@ -136,7 +136,6 @@ bool FPCGExLoadWatabouDataElement::ExecuteInternal(
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->MainPoints->StageOutputs();
-		Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 	}
 
 	return Context->TryComplete();

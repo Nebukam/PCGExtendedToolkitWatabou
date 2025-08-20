@@ -39,6 +39,8 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
 	{
 		return Other.Id == Id && Other.Type == Type;
 	}
+
+	FName GetPinId() const;
 	
 	FORCEINLINE friend uint32 GetTypeHash(const FPCGExFeatureIdentifier InIdentifier)
 	{

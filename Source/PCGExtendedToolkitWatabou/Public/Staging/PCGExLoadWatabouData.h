@@ -66,10 +66,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoPointifyPolygons"))
 	TSet<FName> PointifyPolygons = {TEXT("buildings")};
 
-	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	TArray<FName> PostProcessFunctionNames;
-
+	/** Tag to apply to path-like data. Cannot necessarily be inferred from id alone, so this is a failsafe. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FString PathlikeTag = TEXT("path");
+	
 private:
 	friend class FPCGExLoadWatabouDataElement;
 };
