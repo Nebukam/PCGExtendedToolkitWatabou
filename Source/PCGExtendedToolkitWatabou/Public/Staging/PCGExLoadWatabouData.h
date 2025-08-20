@@ -8,6 +8,7 @@
 
 #include "PCGExLoadWatabouData.generated.h"
 
+class UPCGExWatabouFeaturesCollection;
 class UPCGExWatabouData;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
@@ -24,7 +25,13 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+
+#if WITH_EDITOR
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
+#endif
+	
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
@@ -38,13 +45,17 @@ public:
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	TArray<FName> IdToPins = { TEXT("roads"), TEXT("buildings"), TEXT("fields") };
+	TArray<FName> IdToPins;
 
 #if WITH_EDITOR
 	/** Rebuild Staging data for all collection within this project. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Create pins from selected data", ShortToolTip="Populate the Id-to-Pins array from data.", DisplayOrder=2))
 	void EDITOR_IdToPins();
 #endif
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	double GlobalScale = 1;
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -66,7 +77,13 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLoadWatabouDataElement;
 
+	~FPCGExLoadWatabouDataContext();
+	
+	UPCGExWatabouData* WatabouData = nullptr;
+
 protected:
+	int32 IndexTracker = 0;
+	void ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection);
 };
 
 class FPCGExLoadWatabouDataElement final : public FPCGExPointsProcessorElement
@@ -77,7 +94,7 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExLoadWatabouData

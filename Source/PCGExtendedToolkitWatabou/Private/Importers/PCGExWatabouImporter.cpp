@@ -34,7 +34,7 @@ namespace PCGExWatabouImporter
 
 	void IGeometryImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
 	{
-#define PCGEX_REMOVE_LAST_FEATURE InCollection->Elements.RemoveAt(InCollection->Elements.Num() - 1);
+#define PCGEX_REMOVE_LAST_FEATURE InCollection->Elements.RemoveAt(InCollection->Elements.Num() - 1); continue;
 
 		const TArray<TSharedPtr<FJsonValue>>* FeaturesArray = nullptr;
 
@@ -55,12 +55,13 @@ namespace PCGExWatabouImporter
 
 			FString FeatureType;
 			FString FeatureIdStr;
+			FName FeatureId = NAME_None;
 
-			FeatureObj->TryGetStringField(TEXT("id"), FeatureIdStr);
+			if (FeatureObj->TryGetStringField(TEXT("id"), FeatureIdStr)) { FeatureId = FName(*FeatureIdStr); }
+			else { FeatureId = InCollection->Id; }
+
 			if (FeatureObj->TryGetStringField(TEXT("type"), FeatureType))
 			{
-				FName FeatureId = FName(FeatureIdStr);
-
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection) { Type = EPCGExWatabouFeatureType::Collection; }
 				else if (FeatureType == PCGExWatabou::FeatureTypePoint) { Type = EPCGExWatabouFeatureType::Point; }
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiPoint) { Type = EPCGExWatabouFeatureType::MultiPoints; }
@@ -69,8 +70,7 @@ namespace PCGExWatabouImporter
 				else if (FeatureType == PCGExWatabou::FeatureTypePolygon) { Type = EPCGExWatabouFeatureType::Polygon; }
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiPolygon) { Type = EPCGExWatabouFeatureType::Polygon; }
 
-				if (FeatureId.IsNone()) { FeatureId = InCollection->Id; }
-				InData->Identifiers.Add(FPCGExFeatureIdentifier(Type, FeatureId));
+				int32& Count = InData->Identifiers.FindOrAdd(FPCGExFeatureIdentifier(Type, FeatureId), 0);
 
 				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
 				{
@@ -86,6 +86,8 @@ namespace PCGExWatabouImporter
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection)
 				{
 					UPCGExWatabouFeaturesCollection* NewGeometryCollection = NewObject<UPCGExWatabouFeaturesCollection>(InCollection);
+					NewGeometryCollection->Id = FeatureId;
+
 					Build(FeatureObj, NewGeometryCollection, InData);
 
 					if (NewGeometryCollection->IsValidCollection())
@@ -93,8 +95,8 @@ namespace PCGExWatabouImporter
 						NewGeometryCollection->SetFlags(RF_Transactional);
 						NewGeometryCollection->MarkPackageDirty();
 
-						NewGeometryCollection->Id = FName(FeatureId);
 						InCollection->SubCollections.Add(NewGeometryCollection);
+						Count++;
 					}
 
 					continue;
@@ -125,6 +127,7 @@ namespace PCGExWatabouImporter
 						{
 							FPCGExWatabouFeature& Point = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::Point, FeatureId);
 							Point.Coordinates.Add(Coord);
+							Count++;
 						}
 					}
 					else
@@ -132,6 +135,7 @@ namespace PCGExWatabouImporter
 						FPCGExWatabouFeature& MultiPoints = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::MultiPoints, FeatureId);
 						MultiPoints.Coordinates.Reserve(NumCoordinates);
 						if (!Build(MultiPoints, *Coordinates)) { PCGEX_REMOVE_LAST_FEATURE }
+						Count++; 
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeLineString)
@@ -141,6 +145,7 @@ namespace PCGExWatabouImporter
 					NewString.Width = ObjWidth;
 
 					if (!Build(NewString, *Coordinates)) { PCGEX_REMOVE_LAST_FEATURE }
+					Count++; 
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiLineString)
 				{
@@ -156,6 +161,7 @@ namespace PCGExWatabouImporter
 						NewString.Width = ObjWidth;
 
 						if (!Build(NewString, PathPoints)) { PCGEX_REMOVE_LAST_FEATURE }
+						Count++; 
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypePolygon)
@@ -171,10 +177,12 @@ namespace PCGExWatabouImporter
 						NewPolygon.Coordinates.Reserve(NumCoords);
 						NewPolygon.Width = ObjWidth;
 
-						if (!Build(NewPolygon, Vertices))
+						if (!Build(NewPolygon, Vertices)) { PCGEX_REMOVE_LAST_FEATURE }
+						Count++; 
+
+						if (FString Name = TEXT(""); FeatureObj->TryGetStringField(TEXT("name"), Name))
 						{
-							PCGEX_REMOVE_LAST_FEATURE
-							continue;
+							InCollection->Names.Add(InCollection->Elements.Num() - 1, FName(Name));
 						}
 
 						if (FeatureIdStr == TEXT("earth"))
@@ -211,6 +219,7 @@ namespace PCGExWatabouImporter
 							NewPolygon.Width = ObjWidth;
 
 							if (!Build(NewPolygon, Vertices)) { PCGEX_REMOVE_LAST_FEATURE }
+							Count++; 
 						}
 					}
 				}

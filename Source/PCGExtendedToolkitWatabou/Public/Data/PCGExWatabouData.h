@@ -27,8 +27,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Data)
 	TMap<FName, double> Values;
 	
-	UPROPERTY(VisibleAnywhere, Category=Data)
-	TSet<FPCGExFeatureIdentifier> Identifiers;
+	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} | {Type}"))
+	TMap<FPCGExFeatureIdentifier, int32> Identifiers;
 	
 	UPROPERTY(VisibleAnywhere, Instanced, Category = Data)
 	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;

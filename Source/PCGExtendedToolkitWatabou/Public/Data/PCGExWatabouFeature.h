@@ -64,9 +64,6 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
 	FName Id = NAME_None;
 
 	UPROPERTY(VisibleAnywhere, Category=Settings)
-	FString Name = TEXT("");
-
-	UPROPERTY(VisibleAnywhere, Category=Settings)
 	double Width = 0;
 
 	UPROPERTY(VisibleAnywhere, Category=Settings)
@@ -97,6 +94,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Instanced, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> SubCollections;
 
+	/** Names are rare, so they're stored per-index */
+	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} : {Name}"))
+	TMap<int32, FName> Names;
+	
 	void Reset();
 	bool IsValidCollection() const;
 };
