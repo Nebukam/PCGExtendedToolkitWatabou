@@ -120,12 +120,6 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 
 	ImporterInstance->Build(JsonObject, NewAsset->Features, NewAsset);
 
-	if (!NewAsset->Features->IsValidCollection())
-	{
-		UE_LOG(LogPCGExWatabou, Error, TEXT("Used Generator '%s' (%d), but found no valid data. (%s)"), *GenName.ToString(), static_cast<int32>(GenVersion), *Filename)
-		PCGEX_WATABOU_FACTORY_CANCEL
-	}
-
 	if (!ImporterInstance->PostBuild(NewAsset)) { PCGEX_WATABOU_FACTORY_CANCEL }
 
 	UE_LOG(LogPCGExWatabou, Log, TEXT("Successfully imported %s"), *Filename)

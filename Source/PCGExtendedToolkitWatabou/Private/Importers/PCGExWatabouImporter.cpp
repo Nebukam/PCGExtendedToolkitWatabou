@@ -33,9 +33,8 @@ namespace PCGExWatabouImporter
 		return true;
 	}
 
-	bool IImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
+	void IImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
 	{
-		return true;
 	}
 
 	void IImporter::BuildDetails(const TSharedPtr<FJsonObject>& InFeatureObj, UPCGExWatabouFeaturesCollection* InCollection, FPCGExFeatureDetails* InDetails)
@@ -61,8 +60,15 @@ namespace PCGExWatabouImporter
 		if (!LocalDetails.IsEmpty()) { InCollection->ElementsDetails.Add(InIdx, MoveTemp(LocalDetails)); }
 	}
 
-	void IImporter::PostBuild(UPCGExWatabouData* InData)
+	bool IImporter::PostBuild(UPCGExWatabouData* InData)
 	{
+		if (!InData->Features->IsValidCollection())
+		{
+			UE_LOG(LogPCGExWatabou, Error, TEXT("Found no valid data."))
+			return false;
+		}
+
+		return true;
 	}
 
 	void IGeometryImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
@@ -72,7 +78,7 @@ namespace PCGExWatabouImporter
 		const TArray<TSharedPtr<FJsonValue>>* FeaturesArray = nullptr;
 
 		BuildDetails(InJson, InCollection, &InCollection->Details);
-		
+
 		if (!InJson->TryGetArrayField(TEXT("features"), FeaturesArray) &&
 			!InJson->TryGetArrayField(TEXT("geometries"), FeaturesArray))
 		{
