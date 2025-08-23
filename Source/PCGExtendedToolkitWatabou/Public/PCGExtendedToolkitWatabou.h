@@ -24,6 +24,7 @@ public:
 
 	void RegisterImporter(FName Name, int32 Version, FCreateFunc Func);
 	TSharedPtr<PCGExWatabouImporter::IImporter> CreateImporter(const FName Name, const int32 Version);
+	
 
 private:
 	TMap<FName, TSharedPtr<TMap<int32, FCreateFunc>>> GeneratorRegistry;

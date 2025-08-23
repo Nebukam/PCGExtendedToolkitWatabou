@@ -8,6 +8,12 @@
 
 #include "PCGExLoadWatabouData.generated.h"
 
+namespace PCGExLoadWatabouData
+{
+	class FBuildFeature;
+}
+
+struct FPCGExWatabouFeature;
 class UPCGExWatabouFeaturesCollection;
 class UPCGExWatabouData;
 
@@ -19,7 +25,7 @@ class UPCGExLoadWatabouDataSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(LoadWatabouData, "Load Watabou Data", "Load & Read watabou data and output points, paths & clusters.");
+	PCGEX_NODE_INFOS(LoadWatabouData, "Load Watabou Data", "Load & Read Watabou data and output points & paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::InputOutput; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives); }
 #endif
@@ -81,9 +87,10 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 	~FPCGExLoadWatabouDataContext();
 
 	UPCGExWatabouData* WatabouData = nullptr;
-
+	
 protected:
 	int32 IndexTracker = 0;
+	TArray<TSharedPtr<PCGExLoadWatabouData::FBuildFeature>> Tasklist;
 	void ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection);
 };
 
@@ -100,4 +107,40 @@ protected:
 
 namespace PCGExLoadWatabouData
 {
+	class FBuildFeature : public PCGExMT::FTask
+	{
+	public:
+		FBuildFeature() = default;
+
+		const UPCGExWatabouFeaturesCollection* ParentCollection = nullptr;
+		int32 ElementIndex = -1;
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+	};
+
+	class FBuildMultiPoints final : public FBuildFeature
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildMultiPoints)
+
+		FBuildMultiPoints() = default;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	};
+
+	class FBuildLineString final : public FBuildFeature
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildLineString)
+
+		FBuildLineString() = default;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	};
+
+	class FBuildPolygon final : public FBuildFeature
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildPolygon)
+
+		FBuildPolygon() = default;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	};
 }

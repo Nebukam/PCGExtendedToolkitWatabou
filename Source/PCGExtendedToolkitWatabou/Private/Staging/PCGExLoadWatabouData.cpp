@@ -4,6 +4,7 @@
 #include "Staging/PCGExLoadWatabouData.h"
 
 #include "PCGComponent.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExWatabouData.h"
 #include "Paths/PCGExPaths.h"
 
@@ -46,7 +47,7 @@ void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
 	if (!WatabouData) { return; }
 
 	Modify(true);
-	
+
 	IdToPins.Empty();
 
 	for (const TPair<FPCGExFeatureIdentifier, int32>& Pair : WatabouData->Identifiers)
@@ -57,7 +58,7 @@ void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
 
 	FPropertyChangedEvent EmptyEvent(nullptr);
 	PostEditChangeProperty(EmptyEvent);
-	
+
 	MarkPackageDirty();
 }
 #endif
@@ -69,31 +70,39 @@ FPCGExLoadWatabouDataContext::~FPCGExLoadWatabouDataContext()
 
 void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection)
 {
-	for (const FPCGExWatabouFeature& Feature : InCollection->Elements)
+	for (int i = 0; i < InCollection->Elements.Num(); i++)
 	{
+		const FPCGExWatabouFeature& Feature = InCollection->Elements[i];
+		TSharedPtr<PCGExLoadWatabouData::FBuildFeature> NewTask = nullptr;
+
 		switch (Feature.Type)
 		{
 		case EPCGExWatabouFeatureType::Unknown:
-			continue;
 			break;
 		case EPCGExWatabouFeatureType::Point:
 			// TODO : Merge all, not supported yet
-			continue;
 			break;
 		case EPCGExWatabouFeatureType::MultiPoints:
-			// One data per
+			NewTask = MakeShared<PCGExLoadWatabouData::FBuildMultiPoints>();
 			break;
 		case EPCGExWatabouFeatureType::LineString:
-			// One data per
+			NewTask = MakeShared<PCGExLoadWatabouData::FBuildLineString>();
 			break;
 		case EPCGExWatabouFeatureType::Polygon:
-			// The tricky one. One data per for now
-			// Need to allow conversion to points if has a specific id
+			NewTask = MakeShared<PCGExLoadWatabouData::FBuildPolygon>();
 			break;
 		case EPCGExWatabouFeatureType::Collection:
 			// Should never hit that
 			break;
 		}
+
+		if (!NewTask) { continue; }
+
+		NewTask->ParentCollection = InCollection;
+		NewTask->ElementIndex = i;
+		NewTask->PointIO = MainPoints->Emplace_GetRef();
+
+		Tasklist.Add(NewTask);
 		IndexTracker++;
 	}
 
@@ -127,15 +136,21 @@ bool FPCGExLoadWatabouDataElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 		Context->ProcessCollection(Context->WatabouData->Features);
-		// TODO : If features are to be quadified, they need to be processed now
-		// TODO : Output values attribute set
+		if (Context->Tasklist.IsEmpty()) { return Context->CancelExecution(TEXT("Could not generate any points from the selected data.")); }
+
+		const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = Context->GetAsyncManager() ? Context->GetAsyncManager()->TryCreateTaskGroup(FName("TaskGroup")) : nullptr;
+		if (!TaskGroup) { return true; }
+
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		TaskGroup->StartTasksBatch(Context->Tasklist);
+		return false;
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->MainPoints->StageOutputs();
+		Context->Done();
 	}
 
 	return Context->TryComplete();
@@ -146,11 +161,63 @@ bool FPCGExLoadWatabouDataElement::CanExecuteOnlyOnMainThread(FPCGContext* Conte
 	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
+#define PCGEX_FEATURE \
+FPCGExLoadWatabouDataContext* Context = static_cast<FPCGExLoadWatabouDataContext*>(PointIO->GetContext()); \
+PCGEX_SETTINGS(LoadWatabouData) \
+const FPCGExWatabouFeature& Feature = ParentCollection->Elements[ElementIndex];
+
 namespace PCGExLoadWatabouData
 {
+	void FBuildMultiPoints::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		PCGEX_FEATURE
+
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+
+		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
+
+		for (int i = 0; i < Feature.Coordinates.Num(); i++)
+		{
+			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+		}
+	}
+
+	void FBuildLineString::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		PCGEX_FEATURE
+
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+
+		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
+
+		for (int i = 0; i < Feature.Coordinates.Num(); i++)
+		{
+			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+		}
+
+		PCGExPaths::SetClosedLoop(PointIO->GetOut(), false);
+		PointIO->Tags->AddRaw(Settings->PathlikeTag);
+	}
+
+	void FBuildPolygon::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		PCGEX_FEATURE
+
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+
+		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
+
+		for (int i = 0; i < Feature.Coordinates.Num(); i++)
+		{
+			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+		}
+
+		PCGExPaths::SetClosedLoop(PointIO->GetOut(), true);
+		PointIO->Tags->AddRaw(Settings->PathlikeTag);
+	}
 }
 
-
+#undef PCGEX_FEATURE
 #undef LOCTEXT_NAMESPACE
 
 

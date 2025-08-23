@@ -35,6 +35,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureDetails
 	TMap<FName, double> NumericValues;
 
 	bool IsEmpty() const { return StringValues.IsEmpty() && NumericValues.IsEmpty(); }
+
 };
 
 /**
@@ -120,4 +121,5 @@ public:
 
 	void Reset();
 	bool IsValidCollection() const;
+
 };
