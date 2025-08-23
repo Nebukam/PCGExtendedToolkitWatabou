@@ -105,7 +105,7 @@ namespace PCGExWatabouImporter
 			{
 				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
 				{
-					BuildDetails(InJson, InCollection, &InCollection->Details);
+					BuildDetails(FeatureObj, InCollection, &InCollection->Details);
 					continue;
 				}
 
