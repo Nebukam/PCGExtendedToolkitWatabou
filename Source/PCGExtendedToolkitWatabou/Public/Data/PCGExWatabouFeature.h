@@ -22,6 +22,25 @@ enum class EPCGExWatabouFeatureType : uint8
  * 
  */
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureDetails
+{
+	GENERATED_BODY()
+
+	FPCGExFeatureDetails() = default;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	TMap<FName, FString> StringValues;
+
+	UPROPERTY(VisibleAnywhere, Category=Settings)
+	TMap<FName, double> NumericValues;
+
+	bool IsEmpty() const { return StringValues.IsEmpty() && NumericValues.IsEmpty(); }
+};
+
+/**
+ * 
+ */
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
 {
 	GENERATED_BODY()
@@ -40,8 +59,6 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
 		return Other.Id == Id && Other.Type == Type;
 	}
 
-	FName GetPinId() const;
-	
 	FORCEINLINE friend uint32 GetTypeHash(const FPCGExFeatureIdentifier InIdentifier)
 	{
 		return HashCombineFast(GetTypeHash(InIdentifier.Id), GetTypeHash(InIdentifier.Type));
@@ -66,9 +83,6 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
 	FName Id = NAME_None;
 
 	UPROPERTY(VisibleAnywhere, Category=Settings)
-	double Width = 0;
-
-	UPROPERTY(VisibleAnywhere, Category=Settings)
 	TArray<FVector2D> Coordinates;
 
 	FPCGExFeatureIdentifier GetIdentifier() const;
@@ -85,21 +99,25 @@ class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UOb
 public:
 	UPCGExWatabouFeaturesCollection() = default;
 
+	/**  */
+	UPROPERTY(VisibleAnywhere, Category=Data)
+	FPCGExFeatureDetails Details;
+	
 	UPROPERTY(VisibleAnywhere, Category=Data)
 	FName Id = NAME_None;
 
 	/** Isolated segments elements */
-	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} : {Name}"))
+	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<FPCGExWatabouFeature> Elements;
 
 	/** Sub-collections of elements */
 	UPROPERTY(VisibleAnywhere, Instanced, Category=Data, meta=(TitleProperty="{Id}"))
 	TArray<TObjectPtr<UPCGExWatabouFeaturesCollection>> SubCollections;
 
-	/** Names are rare, so they're stored per-index */
-	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} : {Name}"))
-	TMap<int32, FName> Names;
-	
+	/** Feature details are rare, so they're stored per-index */
+	UPROPERTY(VisibleAnywhere, Category=Data)
+	TMap<int32, FPCGExFeatureDetails> ElementsDetails;
+
 	void Reset();
 	bool IsValidCollection() const;
 };

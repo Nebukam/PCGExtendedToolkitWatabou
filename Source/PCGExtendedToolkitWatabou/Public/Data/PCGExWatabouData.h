@@ -25,17 +25,14 @@ public:
 	UPCGExWatabouData();
 
 	UPROPERTY(VisibleAnywhere, Category = Data)
-	TMap<FName, double> Values;
-	
-	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} | {Type}"))
-	TMap<FPCGExFeatureIdentifier, int32> Identifiers;
-	
+	FBox Bounds = FBox(NoInit);
+		
 	UPROPERTY(VisibleAnywhere, Instanced, Category = Data)
 	TObjectPtr<UPCGExWatabouFeaturesCollection> Features;
 
-	UPROPERTY(VisibleAnywhere, Category = "Data|Details")
-	FBox Bounds = FBox(NoInit);
-		
+	UPROPERTY(VisibleAnywhere, Category=Data, meta=(TitleProperty="{Id} | {Type}"))
+	TMap<FPCGExFeatureIdentifier, int32> Identifiers;
+	
 	void Reset();
 
 #if WITH_EDITORONLY_DATA

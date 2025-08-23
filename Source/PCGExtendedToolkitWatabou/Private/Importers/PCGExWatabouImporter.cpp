@@ -28,7 +28,40 @@ namespace PCGExWatabouImporter
 		return true;
 	}
 
-	void IImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
+	bool IImporter::PreBuild(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouData* InData)
+	{
+		return true;
+	}
+
+	bool IImporter::Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData)
+	{
+		return true;
+	}
+
+	void IImporter::BuildDetails(const TSharedPtr<FJsonObject>& InFeatureObj, UPCGExWatabouFeaturesCollection* InCollection, FPCGExFeatureDetails* InDetails)
+	{
+		const int32 InIdx = InCollection->Elements.Num() - 1;
+
+		FPCGExFeatureDetails* OutDetails = InDetails;
+		FPCGExFeatureDetails LocalDetails{};
+
+		if (!InDetails) { OutDetails = &LocalDetails; }
+
+		for (const auto& Pair : InFeatureObj->Values)
+		{
+			const FName DetailId = FName(Pair.Key);
+
+			if (IgnoredDetails.Contains(DetailId)) { continue; }
+
+			if (Pair.Value->Type == EJson::Number) { OutDetails->NumericValues.Add(FName(Pair.Key), Pair.Value->AsNumber()); }
+			else if (Pair.Value->Type == EJson::String) { OutDetails->StringValues.Add(FName(Pair.Key), Pair.Value->AsString()); }
+			else if (Pair.Value->Type == EJson::Object) { BuildDetails(InFeatureObj, InCollection, OutDetails); }
+		}
+
+		if (!LocalDetails.IsEmpty()) { InCollection->ElementsDetails.Add(InIdx, MoveTemp(LocalDetails)); }
+	}
+
+	void IImporter::PostBuild(UPCGExWatabouData* InData)
 	{
 	}
 
@@ -38,6 +71,8 @@ namespace PCGExWatabouImporter
 
 		const TArray<TSharedPtr<FJsonValue>>* FeaturesArray = nullptr;
 
+		BuildDetails(InJson, InCollection, &InCollection->Details);
+		
 		if (!InJson->TryGetArrayField(TEXT("features"), FeaturesArray) &&
 			!InJson->TryGetArrayField(TEXT("geometries"), FeaturesArray))
 		{
@@ -72,17 +107,6 @@ namespace PCGExWatabouImporter
 
 				int32& Count = InData->Identifiers.FindOrAdd(FPCGExFeatureIdentifier(Type, FeatureId), 0);
 
-				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
-				{
-					// Top-level settings, contains some generic values such as road thickness etc
-					// Those aren't used anywhere but will be useful to output as an attribute set
-					for (const auto& Pair : FeatureObj->Values)
-					{
-						if (Pair.Value->Type == EJson::Number) { InData->Values.Add(FName(Pair.Key), Pair.Value->AsNumber()); }
-					}
-					continue;
-				}
-
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection)
 				{
 					UPCGExWatabouFeaturesCollection* NewGeometryCollection = NewObject<UPCGExWatabouFeaturesCollection>(InCollection);
@@ -108,9 +132,6 @@ namespace PCGExWatabouImporter
 				const int32 NumCoordinates = Coordinates ? Coordinates->Num() : 0;
 				if (!NumCoordinates) { continue; }
 
-				double ObjWidth = 0;
-				FeatureObj->TryGetNumberField(TEXT("width"), ObjWidth);
-
 				if (FeatureType == PCGExWatabou::FeatureTypePoint)
 				{
 					UE_LOG(LogPCGExWatabou, Error, TEXT("Single point parsing not implemented yet"));
@@ -135,17 +156,18 @@ namespace PCGExWatabouImporter
 						FPCGExWatabouFeature& MultiPoints = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::MultiPoints, FeatureId);
 						MultiPoints.Coordinates.Reserve(NumCoordinates);
 						if (!Build(MultiPoints, *Coordinates)) { PCGEX_REMOVE_LAST_FEATURE }
-						Count++; 
+						BuildDetails(FeatureObj, InCollection);
+						Count++;
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeLineString)
 				{
 					FPCGExWatabouFeature& NewString = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::LineString, FeatureId);
 					NewString.Coordinates.Reserve(NumCoordinates);
-					NewString.Width = ObjWidth;
 
 					if (!Build(NewString, *Coordinates)) { PCGEX_REMOVE_LAST_FEATURE }
-					Count++; 
+					BuildDetails(FeatureObj, InCollection);
+					Count++;
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiLineString)
 				{
@@ -158,10 +180,10 @@ namespace PCGExWatabouImporter
 
 						FPCGExWatabouFeature& NewString = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::LineString, FeatureId);
 						NewString.Coordinates.Reserve(NumCoords);
-						NewString.Width = ObjWidth;
 
 						if (!Build(NewString, PathPoints)) { PCGEX_REMOVE_LAST_FEATURE }
-						Count++; 
+						BuildDetails(FeatureObj, InCollection);
+						Count++;
 					}
 				}
 				else if (FeatureType == PCGExWatabou::FeatureTypePolygon)
@@ -175,15 +197,10 @@ namespace PCGExWatabouImporter
 
 						FPCGExWatabouFeature& NewPolygon = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::Polygon, FeatureId);
 						NewPolygon.Coordinates.Reserve(NumCoords);
-						NewPolygon.Width = ObjWidth;
 
 						if (!Build(NewPolygon, Vertices)) { PCGEX_REMOVE_LAST_FEATURE }
-						Count++; 
-
-						if (FString Name = TEXT(""); FeatureObj->TryGetStringField(TEXT("name"), Name))
-						{
-							InCollection->Names.Add(InCollection->Elements.Num() - 1, FName(Name));
-						}
+						BuildDetails(FeatureObj, InCollection);
+						Count++;
 
 						if (FeatureIdStr == TEXT("earth"))
 						{
@@ -216,10 +233,10 @@ namespace PCGExWatabouImporter
 
 							FPCGExWatabouFeature& NewPolygon = InCollection->Elements.Emplace_GetRef(EPCGExWatabouFeatureType::Polygon, FeatureId);
 							NewPolygon.Coordinates.Reserve(NumCoords);
-							NewPolygon.Width = ObjWidth;
 
 							if (!Build(NewPolygon, Vertices)) { PCGEX_REMOVE_LAST_FEATURE }
-							Count++; 
+							BuildDetails(FeatureObj, InCollection);
+							Count++;
 						}
 					}
 				}
