@@ -103,6 +103,12 @@ namespace PCGExWatabouImporter
 
 			if (FeatureObj->TryGetStringField(TEXT("type"), FeatureType))
 			{
+				if (FeatureType == PCGExWatabou::FeatureTypeFeature)
+				{
+					BuildDetails(InJson, InCollection, &InCollection->Details);
+					continue;
+				}
+
 				if (FeatureType == PCGExWatabou::FeatureTypeGeometryCollection) { Type = EPCGExWatabouFeatureType::Collection; }
 				else if (FeatureType == PCGExWatabou::FeatureTypePoint) { Type = EPCGExWatabouFeatureType::Point; }
 				else if (FeatureType == PCGExWatabou::FeatureTypeMultiPoint) { Type = EPCGExWatabouFeatureType::MultiPoints; }
