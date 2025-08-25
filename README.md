@@ -5,7 +5,7 @@
 
 ## Purpose of Plugin
 
-This **experimental** Watabou plugin allows to convert JSON exports of [Watabou Generators](https://watabou.itch.io/) into PCG & [PCG Extended Toolkit](https://nebukan.github.io/PCGExtendedToolkit) data.  
+This **experimental** Watabou plugin allows to convert JSON exports of [Watabou Generators](https://watabou.itch.io/) into PCG & [PCG Extended Toolkit](https://nebukam.github.io/PCGExtendedToolkit) data.  
 
 <img width="1016" height="540" alt="image" src="https://github.com/user-attachments/assets/b9cd1aa8-9f61-49b6-8428-5082f60bc295" />
 
