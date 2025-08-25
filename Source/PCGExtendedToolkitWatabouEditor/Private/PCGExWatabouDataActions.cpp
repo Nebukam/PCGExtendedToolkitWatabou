@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExWatabouScriptActions.h"
+#include "PCGExWatabouDataActions.h"
 
 #include "ToolMenuSection.h"
 #include "Data/PCGExWatabouData.h"
@@ -9,32 +9,32 @@
 #include "Misc/MessageDialog.h"
 #include "Widgets/Views/SListView.h"
 
-FText FPCGExWatabouScriptActions::GetName() const
+FText FPCGExWatabouDataActions::GetName() const
 {
 	return INVTEXT("Watabou Arcana");
 }
 
-FString FPCGExWatabouScriptActions::GetObjectDisplayName(UObject* Object) const
+FString FPCGExWatabouDataActions::GetObjectDisplayName(UObject* Object) const
 {
 	return Object->GetName();
 }
 
-UClass* FPCGExWatabouScriptActions::GetSupportedClass() const
+UClass* FPCGExWatabouDataActions::GetSupportedClass() const
 {
 	return UPCGExWatabouData::StaticClass();
 }
 
-FColor FPCGExWatabouScriptActions::GetTypeColor() const
+FColor FPCGExWatabouDataActions::GetTypeColor() const
 {
 	return FColor::Purple;
 }
 
-uint32 FPCGExWatabouScriptActions::GetCategories()
+uint32 FPCGExWatabouDataActions::GetCategories()
 {
 	return EAssetTypeCategories::Misc;
 }
 
-void FPCGExWatabouScriptActions::GetResolvedSourceFilePaths(const TArray<UObject*>& TypeAssets,
+void FPCGExWatabouDataActions::GetResolvedSourceFilePaths(const TArray<UObject*>& TypeAssets,
 	TArray<FString>& OutSourceFilePaths) const
 {
 	for (auto& Asset : TypeAssets)
@@ -47,7 +47,7 @@ void FPCGExWatabouScriptActions::GetResolvedSourceFilePaths(const TArray<UObject
 	}
 }
 
-bool FPCGExWatabouScriptActions::HasActions(const TArray<UObject*>& InObjects) const
+bool FPCGExWatabouDataActions::HasActions(const TArray<UObject*>& InObjects) const
 {
 	return false;
 }

@@ -9,7 +9,7 @@
 /**
  * 
  */
-class FPCGExWatabouScriptActions : public FAssetTypeActions_Base
+class FPCGExWatabouDataActions : public FAssetTypeActions_Base
 {
 public:
 	virtual FText GetName() const override;

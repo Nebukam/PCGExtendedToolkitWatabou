@@ -8,7 +8,7 @@
 #include "AssetTypeActions_Base.h"
 #include "EditorReimportHandler.h"
 #include "PCGExWatabouDataFactory.h"
-#include "PCGExWatabouScriptActions.h"
+#include "PCGExWatabouDataActions.h"
 #include "Styling/SlateStyle.h"
 #include "Interfaces/IPluginManager.h"
 #include "AssetRegistry/AssetData.h"
@@ -21,7 +21,7 @@ Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentD
 
 void FPCGExtendedToolkitWatabouEditorModule::StartupModule()
 {
-	DataActions = MakeShared<FPCGExWatabouScriptActions>();
+	DataActions = MakeShared<FPCGExWatabouDataActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(DataActions.ToSharedRef());
 	
 	Style = MakeShared<FSlateStyleSet>("PCGExWatabouStyleSet");

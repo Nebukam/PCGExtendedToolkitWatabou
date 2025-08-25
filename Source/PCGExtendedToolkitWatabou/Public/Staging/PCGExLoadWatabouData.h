@@ -32,12 +32,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-#if WITH_EDITOR
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
-#endif
 
 	//~End UPCGSettings
 
@@ -51,13 +46,21 @@ public:
 	TSoftObjectPtr<UPCGExWatabouData> DataAsset;
 
 	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FTransform Transform;
+	
+	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> IdToPins;
-
+	
 #if WITH_EDITOR
 	/** Rebuild Staging data for all collection within this project. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Create pins from selected data", ShortToolTip="Populate the Id-to-Pins array from data.", DisplayOrder=2))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Reset pins from selected data", ShortToolTip="Populate the Id-to-Pins array from data.", DisplayOrder=2))
 	void EDITOR_IdToPins();
+	
+	/** Rebuild Staging data for all collection within this project. */
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Append pins from selected data", ShortToolTip="Add to the Id-to-Pins array any Id that's missing, but does not remove existing ones.", DisplayOrder=2))
+	void EDITOR_AppendIdToPins();
 #endif
 
 	/**  */
@@ -71,6 +74,14 @@ public:
 	/** If enabled, polygons with the specified identifiers will be output as bounds instead of paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoPointifyPolygons"))
 	TSet<FName> PointifyPolygons = {TEXT("buildings")};
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bDoPointifyLines = false;
+	
+	/** If enabled, polygons with the specified identifiers will be output as bounds instead of paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoPointifyLines"))
+	TSet<FName> PointifyLines = {TEXT("planks")};
 
 	/** Tag to apply to path-like data. Cannot necessarily be inferred from id alone, so this is a failsafe. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -87,8 +98,11 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 	~FPCGExLoadWatabouDataContext();
 
 	UPCGExWatabouData* WatabouData = nullptr;
+	TArray<FName> IdAsPins;
 	
 protected:
+	TSet<FName> PointifyPolygons;
+	TSet<FName> PointifyLines;
 	int32 IndexTracker = 0;
 	TArray<TSharedPtr<PCGExLoadWatabouData::FBuildFeature>> Tasklist;
 	void ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection);

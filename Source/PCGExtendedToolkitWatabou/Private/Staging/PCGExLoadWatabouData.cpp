@@ -13,13 +13,6 @@
 
 PCGEX_INITIALIZE_ELEMENT(LoadWatabouData)
 
-TArray<FPCGPinProperties> UPCGExLoadWatabouDataSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_SPATIAL(FName("Bounds"), "Single spatial data whose bounds will be used to do the triage", Normal, {})
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExLoadWatabouDataSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -31,14 +24,6 @@ TArray<FPCGPinProperties> UPCGExLoadWatabouDataSettings::OutputPinProperties() c
 	PCGEX_PIN_PARAM(FName("Params"), "Top-level values. Arbitrary, depends on generator used.", Normal, {})
 	return PinProperties;
 }
-
-#if WITH_EDITOR
-bool UPCGExLoadWatabouDataSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
-{
-	if (InPin->Properties.Label == FName("Bounds")) { return InPin->EdgeCount() > 0; }
-	return Super::IsPinUsedByNodeExecution(InPin);
-}
-#endif
 
 #if WITH_EDITOR
 void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
@@ -54,6 +39,25 @@ void UPCGExLoadWatabouDataSettings::EDITOR_IdToPins()
 	{
 		if (!Pair.Value) { continue; }
 		IdToPins.Add(Pair.Key.Id);
+	}
+
+	FPropertyChangedEvent EmptyEvent(nullptr);
+	PostEditChangeProperty(EmptyEvent);
+
+	MarkPackageDirty();
+}
+
+void UPCGExLoadWatabouDataSettings::EDITOR_AppendIdToPins()
+{
+	UPCGExWatabouData* WatabouData = DataAsset.LoadSynchronous();
+	if (!WatabouData) { return; }
+
+	Modify(true);
+
+	for (const TPair<FPCGExFeatureIdentifier, int32>& Pair : WatabouData->Identifiers)
+	{
+		if (!Pair.Value) { continue; }
+		IdToPins.AddUnique(Pair.Key.Id);
 	}
 
 	FPropertyChangedEvent EmptyEvent(nullptr);
@@ -89,7 +93,13 @@ void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeatures
 			NewTask = MakeShared<PCGExLoadWatabouData::FBuildLineString>();
 			break;
 		case EPCGExWatabouFeatureType::Polygon:
-			NewTask = MakeShared<PCGExLoadWatabouData::FBuildPolygon>();
+			if (PointifyPolygons.Contains(Feature.Id))
+			{
+			}
+			else
+			{
+				NewTask = MakeShared<PCGExLoadWatabouData::FBuildPolygon>();
+			}
 			break;
 		case EPCGExWatabouFeatureType::Collection:
 			// Should never hit that
@@ -114,6 +124,11 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(LoadWatabouData)
+
+	Context->IdAsPins.Append(Settings->IdToPins);
+	
+	if (Settings->bDoPointifyPolygons) { Context->PointifyPolygons = Settings->PointifyPolygons; }
+	if (Settings->bDoPointifyLines) { Context->PointifyLines = Settings->PointifyLines; }
 
 	Context->WatabouData = PCGExHelpers::LoadBlocking_AnyThread(Settings->DataAsset);
 	if (!Context->WatabouData)
@@ -164,7 +179,9 @@ bool FPCGExLoadWatabouDataElement::CanExecuteOnlyOnMainThread(FPCGContext* Conte
 #define PCGEX_FEATURE \
 FPCGExLoadWatabouDataContext* Context = static_cast<FPCGExLoadWatabouDataContext*>(PointIO->GetContext()); \
 PCGEX_SETTINGS(LoadWatabouData) \
-const FPCGExWatabouFeature& Feature = ParentCollection->Elements[ElementIndex];
+const FPCGExWatabouFeature& Feature = ParentCollection->Elements[ElementIndex]; \
+if(!Feature.Id.IsNone() && Context->IdAsPins.Contains(Feature.Id)){ PointIO->OutputPin = Feature.Id; }
+
 
 namespace PCGExLoadWatabouData
 {

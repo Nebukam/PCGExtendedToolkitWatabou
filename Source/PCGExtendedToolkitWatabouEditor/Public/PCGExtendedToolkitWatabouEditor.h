@@ -7,7 +7,7 @@
 #include "Modules/ModuleInterface.h"
 #include "Styling/SlateStyle.h"
 
-class FPCGExWatabouScriptActions;
+class FPCGExWatabouDataActions;
 class UPCGExWatabouDataReimportFactory;
 
 class FPCGExtendedToolkitWatabouEditorModule : public IModuleInterface
@@ -17,6 +17,6 @@ public:
 	virtual void ShutdownModule() override;
 
 protected:
-	TSharedPtr<FPCGExWatabouScriptActions> DataActions;
+	TSharedPtr<FPCGExWatabouDataActions> DataActions;
 	TSharedPtr<FSlateStyleSet> Style;
 };
