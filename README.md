@@ -13,7 +13,18 @@ PCGExtendedToolkitWatabou (this plugin) is **experimental** code. Watabou JSON d
 
 ## Getting Started
 
-TBD
+Go to any of the currently supported Watabou generators :
+- [Medieval Fantasy City Generator](https://watabou.itch.io/medieval-fantasy-city-generator)
+- [Neighborhood Generator](https://watabou.itch.io/neighbourhood)
+- [Village Generator](https://watabou.itch.io/village-generator)
+
+Then :  
+1. Right-click and export to JSON.  
+2. Rename the file extension from `.json` to `.wataboujson` -- _this is key for the auto-import to kick-in in Unreal._  
+3. Drag'n drop the file to Unreal, this shoudld generate a new Data Asset. Save it.
+4. In a PCG Graph, use the `Load Watabout Data` node and pick your data asset.
+
+> Note that the content of the JSON export is based on what is displayed in the generator. Some generator allow for different type of data to be available such as districts and other things -- play around with them!
 
 For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
 
