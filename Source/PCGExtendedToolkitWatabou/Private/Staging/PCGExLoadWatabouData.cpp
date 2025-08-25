@@ -138,6 +138,8 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->WatabouData->AddToRoot();
+	Context->MainTransform = Settings->Transform;
+	Context->MainTransform.SetScale3D(Settings->Transform.GetScale3D() * Settings->ScaleFactor);
 
 	return true;
 }
@@ -195,7 +197,7 @@ namespace PCGExLoadWatabouData
 
 		for (int i = 0; i < Feature.Coordinates.Num(); i++)
 		{
-			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+			OutTransform[i].SetLocation(Context->MainTransform.TransformPosition(FVector(Feature.Coordinates[i], 0)));
 		}
 	}
 
@@ -209,7 +211,7 @@ namespace PCGExLoadWatabouData
 
 		for (int i = 0; i < Feature.Coordinates.Num(); i++)
 		{
-			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+			OutTransform[i].SetLocation(Context->MainTransform.TransformPosition(FVector(Feature.Coordinates[i], 0)));
 		}
 
 		PCGExPaths::SetClosedLoop(PointIO->GetOut(), false);
@@ -226,7 +228,7 @@ namespace PCGExLoadWatabouData
 
 		for (int i = 0; i < Feature.Coordinates.Num(); i++)
 		{
-			OutTransform[i].SetLocation(FVector(Feature.Coordinates[i], 0));
+			OutTransform[i].SetLocation(Context->MainTransform.TransformPosition(FVector(Feature.Coordinates[i], 0)));
 		}
 
 		PCGExPaths::SetClosedLoop(PointIO->GetOut(), true);
