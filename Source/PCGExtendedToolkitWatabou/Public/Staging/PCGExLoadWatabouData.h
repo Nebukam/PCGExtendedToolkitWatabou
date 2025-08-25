@@ -51,7 +51,7 @@ public:
 
 	/** Scaled applied on top of input transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double ScaleFactor = 100;
+	double ScaleFactor = 1;
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
