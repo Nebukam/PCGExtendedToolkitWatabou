@@ -4,6 +4,7 @@
 #include "Staging/PCGExLoadWatabouData.h"
 
 #include "PCGComponent.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExWatabouData.h"
 #include "Paths/PCGExPaths.h"
@@ -72,6 +73,29 @@ FPCGExLoadWatabouDataContext::~FPCGExLoadWatabouDataContext()
 	if (WatabouData) { WatabouData->RemoveFromRoot(); }
 }
 
+void FPCGExLoadWatabouDataContext::WriteDetails(UPCGData* InData, const int32 ElementIndex, const UPCGExWatabouFeaturesCollection* Collection) const
+{
+	const FPCGExFeatureDetails* Details = Collection->ElementsDetails.Find(ElementIndex);
+
+	if (!Details) { return; }
+
+	UPCGMetadata* Metadata = InData->MutableMetadata();
+
+	for (const TPair<FName, FString>& Pair : Details->StringValues)
+	{
+		FPCGAttributeIdentifier Identifier(Pair.Key);
+		Identifier.MetadataDomain = EPCGMetadataDomainFlag::Data;
+		Metadata->CreateAttribute(Identifier, Pair.Value, true, true);
+	}
+
+	for (const TPair<FName, double>& Pair : Details->NumericValues)
+	{
+		FPCGAttributeIdentifier Identifier(Pair.Key);
+		Identifier.MetadataDomain = EPCGMetadataDomainFlag::Data;
+		Metadata->CreateAttribute(Identifier, Pair.Value * DataScaleFactor, true, true);
+	}
+}
+
 void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection)
 {
 	for (int i = 0; i < InCollection->Elements.Num(); i++)
@@ -126,7 +150,7 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(LoadWatabouData)
 
 	Context->IdAsPins.Append(Settings->IdToPins);
-	
+
 	if (Settings->bDoPointifyPolygons) { Context->PointifyPolygons = Settings->PointifyPolygons; }
 	if (Settings->bDoPointifyLines) { Context->PointifyLines = Settings->PointifyLines; }
 
@@ -138,6 +162,7 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->WatabouData->AddToRoot();
+	Context->DataScaleFactor = Settings->DataScaleFactor;
 	Context->MainTransform = Settings->Transform;
 	Context->MainTransform.SetScale3D(Settings->Transform.GetScale3D() * Settings->ScaleFactor);
 
@@ -181,6 +206,7 @@ bool FPCGExLoadWatabouDataElement::CanExecuteOnlyOnMainThread(FPCGContext* Conte
 #define PCGEX_FEATURE \
 FPCGExLoadWatabouDataContext* Context = static_cast<FPCGExLoadWatabouDataContext*>(PointIO->GetContext()); \
 PCGEX_SETTINGS(LoadWatabouData) \
+Context->WriteDetails(PointIO->GetOut(), ElementIndex, ParentCollection); \
 const FPCGExWatabouFeature& Feature = ParentCollection->Elements[ElementIndex]; \
 if(!Feature.Id.IsNone() && Context->IdAsPins.Contains(Feature.Id)){ PointIO->OutputPin = Feature.Id; }
 

@@ -49,9 +49,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FTransform Transform;
 
-	/** Scaled applied on top of input transform. */
+	/** Scale applied on top of input transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double ScaleFactor = 1;
+	
+	/** Scale applied to numeric data values. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double DataScaleFactor = 1;
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -104,6 +108,9 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 	UPCGExWatabouData* WatabouData = nullptr;
 	TArray<FName> IdAsPins;
 	FTransform MainTransform;
+	double DataScaleFactor = 1;
+
+	void WriteDetails(UPCGData* InData, const int32 ElementIndex, const UPCGExWatabouFeaturesCollection* Collection)const;
 	
 protected:
 	TSet<FName> PointifyPolygons;
