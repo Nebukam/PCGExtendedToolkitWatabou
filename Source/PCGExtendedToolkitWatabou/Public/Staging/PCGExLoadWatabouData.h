@@ -94,6 +94,10 @@ public:
 	/** Tag to apply to path-like data. Cannot necessarily be inferred from id alone, so this is a failsafe. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FString PathlikeTag = TEXT("path");
+
+	/** A list of Ids to omit from processing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoPointifyLines"))
+	TSet<FName> SkipIds;
 	
 private:
 	friend class FPCGExLoadWatabouDataElement;
@@ -107,6 +111,7 @@ struct FPCGExLoadWatabouDataContext final : FPCGExPointsProcessorContext
 
 	UPCGExWatabouData* WatabouData = nullptr;
 	TArray<FName> IdAsPins;
+	TSet<FName> SkipIds;
 	FTransform MainTransform;
 	double DataScaleFactor = 1;
 

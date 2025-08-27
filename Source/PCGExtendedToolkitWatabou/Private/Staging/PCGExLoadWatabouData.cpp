@@ -116,6 +116,8 @@ void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeatures
 	for (int i = 0; i < InCollection->Elements.Num(); i++)
 	{
 		const FPCGExWatabouFeature& Feature = InCollection->Elements[i];
+		if (SkipIds.Contains(Feature.Id)) { continue; }
+		
 		TSharedPtr<PCGExLoadWatabouData::FBuildFeature> NewTask = nullptr;
 
 		switch (Feature.Type)
@@ -181,6 +183,8 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(LoadWatabouData)
 
 	Context->IdAsPins.Append(Settings->IdToPins);
+
+	PCGEX_FWD(SkipIds)
 
 	if (Settings->bDoPointifyPolygons) { Context->PointifyPolygons = Settings->PointifyPolygons; }
 	if (Settings->bDoPointifyLines) { Context->PointifyLines = Settings->PointifyLines; }
@@ -307,7 +311,7 @@ namespace PCGExLoadWatabouData
 		TPCGValueRange<FVector> OutBoundsMin = PointIO->GetOut()->GetBoundsMinValueRange();
 		TPCGValueRange<FVector> OutBoundsMax = PointIO->GetOut()->GetBoundsMaxValueRange();
 
-		const FVector Flattener = FVector(-1,-1,0);
+		const FVector Flattener = FVector(-1, -1, 0);
 
 		for (int i = 0; i < Elements.Num(); i++)
 		{
