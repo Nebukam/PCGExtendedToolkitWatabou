@@ -98,6 +98,21 @@ void FPCGExLoadWatabouDataContext::WriteDetails(UPCGData* InData, const int32 El
 
 void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeaturesCollection* InCollection)
 {
+	TMap<FName, TArray<int32>> PointifyList;
+
+	auto Pointify = [&](const FPCGExWatabouFeature& Feature, int32 ElementIndex)
+	{
+		TArray<int32>* ListPtr = PointifyList.Find(Feature.Id);
+		if (!ListPtr)
+		{
+			TArray<int32>& List = PointifyList.Add(Feature.Id);
+			const int32* NumPtr = WatabouData->Identifiers.Find(Feature.GetIdentifier());
+			List.Reserve(NumPtr ? *NumPtr : InCollection->Elements.Num());
+			List.Add(ElementIndex);
+		}
+		else { ListPtr->Emplace(ElementIndex); }
+	};
+
 	for (int i = 0; i < InCollection->Elements.Num(); i++)
 	{
 		const FPCGExWatabouFeature& Feature = InCollection->Elements[i];
@@ -114,16 +129,20 @@ void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeatures
 			NewTask = MakeShared<PCGExLoadWatabouData::FBuildMultiPoints>();
 			break;
 		case EPCGExWatabouFeatureType::LineString:
-			NewTask = MakeShared<PCGExLoadWatabouData::FBuildLineString>();
+			if (PointifyLines.Contains(Feature.Id))
+			{
+				Pointify(Feature, i);
+				continue;
+			}
+			else { NewTask = MakeShared<PCGExLoadWatabouData::FBuildLineString>(); }
 			break;
 		case EPCGExWatabouFeatureType::Polygon:
 			if (PointifyPolygons.Contains(Feature.Id))
 			{
+				Pointify(Feature, i);
+				continue;
 			}
-			else
-			{
-				NewTask = MakeShared<PCGExLoadWatabouData::FBuildPolygon>();
-			}
+			else { NewTask = MakeShared<PCGExLoadWatabouData::FBuildPolygon>(); }
 			break;
 		case EPCGExWatabouFeatureType::Collection:
 			// Should never hit that
@@ -134,6 +153,18 @@ void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeatures
 
 		NewTask->ParentCollection = InCollection;
 		NewTask->ElementIndex = i;
+		NewTask->PointIO = MainPoints->Emplace_GetRef();
+
+		Tasklist.Add(NewTask);
+		IndexTracker++;
+	}
+
+	for (TPair<FName, TArray<int32>>& Pair : PointifyList)
+	{
+		TSharedPtr<PCGExLoadWatabouData::FBuildPointified> NewTask = MakeShared<PCGExLoadWatabouData::FBuildPointified>();
+		NewTask->ParentCollection = InCollection;
+		NewTask->ElementIndex = IndexTracker++;
+		NewTask->Elements = MoveTemp(Pair.Value);
 		NewTask->PointIO = MainPoints->Emplace_GetRef();
 
 		Tasklist.Add(NewTask);
@@ -208,7 +239,10 @@ FPCGExLoadWatabouDataContext* Context = static_cast<FPCGExLoadWatabouDataContext
 PCGEX_SETTINGS(LoadWatabouData) \
 Context->WriteDetails(PointIO->GetOut(), ElementIndex, ParentCollection); \
 const FPCGExWatabouFeature& Feature = ParentCollection->Elements[ElementIndex]; \
-if(!Feature.Id.IsNone() && Context->IdAsPins.Contains(Feature.Id)){ PointIO->OutputPin = Feature.Id; }
+if(!Feature.Id.IsNone()){ \
+	if(Context->IdAsPins.Contains(Feature.Id)){ PointIO->OutputPin = Feature.Id; } \
+	PointIO->Tags->AddRaw(Feature.Id.ToString());\
+}
 
 
 namespace PCGExLoadWatabouData
@@ -217,7 +251,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -231,7 +265,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -248,7 +282,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num());
+		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -259,6 +293,32 @@ namespace PCGExLoadWatabouData
 
 		PCGExPaths::SetClosedLoop(PointIO->GetOut(), true);
 		PointIO->Tags->AddRaw(Settings->PathlikeTag);
+	}
+
+	void FBuildPointified::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		PCGEX_FEATURE
+
+		PCGEx::SetNumPointsAllocated(
+			PointIO->GetOut(), Elements.Num(),
+			EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax);
+
+		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FVector> OutBoundsMin = PointIO->GetOut()->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> OutBoundsMax = PointIO->GetOut()->GetBoundsMaxValueRange();
+
+		const FVector Flattener = FVector(-1,-1,0);
+
+		for (int i = 0; i < Elements.Num(); i++)
+		{
+			const FPCGExWatabouFeature& LocalFeature = ParentCollection->Elements[Elements[i]];
+			PCGExGeo::FBestFitPlane Plane(LocalFeature.Coordinates);
+			Plane.Extents.Z = Plane.Extents.Y * 2;
+
+			OutTransform[i] = Plane.GetTransform() * Context->MainTransform;
+			OutBoundsMin[i] = Plane.Extents * Flattener;
+			OutBoundsMax[i] = Plane.Extents;
+		}
 	}
 }
 

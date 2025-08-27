@@ -169,4 +169,15 @@ namespace PCGExLoadWatabouData
 		FBuildPolygon() = default;
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
+
+	class FBuildPointified final : public FBuildFeature
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildPointified)
+
+		TArray<int32> Elements;
+		
+		FBuildPointified() = default;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	};
 }

@@ -24,7 +24,8 @@ namespace PCGExWatabouImporter
 	{
 		const TArray<TSharedPtr<FJsonValue>>& Vector2D = InObject->AsArray();
 		if (Vector2D.Num() != 2) { return false; }
-		OutValue = FVector2D(Vector2D[0]->AsNumber(), Vector2D[1]->AsNumber());
+		//X axis is flipped
+		OutValue = FVector2D(Vector2D[0]->AsNumber()*-1, Vector2D[1]->AsNumber());
 		return true;
 	}
 
