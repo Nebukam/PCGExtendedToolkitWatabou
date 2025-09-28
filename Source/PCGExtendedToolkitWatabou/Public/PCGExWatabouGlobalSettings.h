@@ -7,8 +7,8 @@
 
 #include "PCGExWatabouGlobalSettings.generated.h"
 
-UCLASS(DefaultConfig, config = Editor, defaultconfig)
-class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouGlobalSettings : public UObject
+UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="PCGEx + Watabou", Description="Configure PCGEx + Watabou settings"))
+class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouGlobalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 

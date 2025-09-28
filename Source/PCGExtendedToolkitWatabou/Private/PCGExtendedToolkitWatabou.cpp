@@ -19,18 +19,6 @@
 void FPCGExtendedToolkitWatabouModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-#if WITH_EDITOR
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-	{
-		SettingsModule->RegisterSettings(
-				"Project", "Plugins", "PCGEx",
-				LOCTEXT("PCGExDetailsName", "PCGEx + Watabou"),
-				LOCTEXT("PCGExDetailsDescription", "Configure PCG Extended Toolkit + Watabou settings"),
-				GetMutableDefault<UPCGExWatabouGlobalSettings>()
-			);
-	}
-#endif
-
 	// Register importers
 
 #define PCGEX_REGISTER_IMPORTER(_ID, _VERSION, _CLASS) RegisterImporter(_ID, FPCGExWatabouVersion(TEXT(#_VERSION)), []() { return MakeShared<_CLASS>(); });
@@ -54,12 +42,6 @@ void FPCGExtendedToolkitWatabouModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module
-#if WITH_EDITOR
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-	{
-		SettingsModule->UnregisterSettings("Project", "Plugins", "PCGEx");
-	}
-#endif
 }
 
 void FPCGExtendedToolkitWatabouModule::RegisterImporter(FName Name, int32 Version, FCreateFunc Func)

@@ -51,6 +51,8 @@ public class PCGExtendedToolkitWatabou : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
+				"Settings",
+				"DeveloperSettings",
 				"PCGExtendedToolkit"
 			}
 		);

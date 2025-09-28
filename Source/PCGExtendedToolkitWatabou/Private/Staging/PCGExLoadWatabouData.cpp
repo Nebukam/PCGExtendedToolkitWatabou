@@ -4,8 +4,11 @@
 #include "Staging/PCGExLoadWatabouData.h"
 
 #include "PCGComponent.h"
+#include "PCGParamData.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExWatabouData.h"
 #include "Paths/PCGExPaths.h"
 
@@ -17,12 +20,14 @@ PCGEX_INITIALIZE_ELEMENT(LoadWatabouData)
 TArray<FPCGPinProperties> UPCGExLoadWatabouDataSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "Default output pin. Data that doesn't make it to specific pins ends up here.", Normal, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "Default output pin. Data that doesn't make it to specific pins ends up here.", Normal)
+
 	for (const FName PinName : IdToPins)
 	{
-		PCGEX_PIN_POINTS(PinName, "Pin that will contain all data with the specified identifier.", Normal, {})
+		PCGEX_PIN_POINTS(PinName, "Pin that will contain all data with the specified identifier.", Normal)
 	}
-	PCGEX_PIN_PARAM(FName("Params"), "Top-level values. Arbitrary, depends on generator used.", Normal, {})
+	
+	PCGEX_PIN_PARAM(FName("Params"), "Top-level values. Arbitrary, depends on generator used.", Normal)
 	return PinProperties;
 }
 

@@ -27,7 +27,6 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(LoadWatabouData, "Load Watabou Data", "Load & Read Watabou data and output points & paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::InputOutput; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives); }
 #endif
 
 protected:
