@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExLoadWatabouData.generated.h"
