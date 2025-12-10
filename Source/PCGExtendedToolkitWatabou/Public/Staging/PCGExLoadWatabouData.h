@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExLoadWatabouData.generated.h"
@@ -130,7 +131,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(LoadWatabouData)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };

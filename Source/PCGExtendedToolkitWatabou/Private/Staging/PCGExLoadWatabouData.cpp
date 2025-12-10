@@ -4,6 +4,7 @@
 #include "Staging/PCGExLoadWatabouData.h"
 
 #include "PCGComponent.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExDataHelpers.h"
@@ -209,8 +210,7 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExLoadWatabouDataElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExLoadWatabouDataElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExLoadWatabouDataElement::Execute);
 
