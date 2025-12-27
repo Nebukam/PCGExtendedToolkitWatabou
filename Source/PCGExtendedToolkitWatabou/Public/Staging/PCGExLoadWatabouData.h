@@ -154,7 +154,7 @@ namespace PCGExLoadWatabouData
 		PCGEX_ASYNC_TASK_NAME(FBuildMultiPoints)
 
 		FBuildMultiPoints() = default;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 	};
 
 	class FBuildLineString final : public FBuildFeature
@@ -163,7 +163,7 @@ namespace PCGExLoadWatabouData
 		PCGEX_ASYNC_TASK_NAME(FBuildLineString)
 
 		FBuildLineString() = default;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 	};
 
 	class FBuildPolygon final : public FBuildFeature
@@ -172,7 +172,7 @@ namespace PCGExLoadWatabouData
 		PCGEX_ASYNC_TASK_NAME(FBuildPolygon)
 
 		FBuildPolygon() = default;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 	};
 
 	class FBuildPointified final : public FBuildFeature
@@ -183,6 +183,6 @@ namespace PCGExLoadWatabouData
 		TArray<int32> Elements;
 		
 		FBuildPointified() = default;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 	};
 }

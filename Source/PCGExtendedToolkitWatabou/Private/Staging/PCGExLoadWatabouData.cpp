@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExLoadWatabouDataSettings::OutputPinProperties() c
 	{
 		PCGEX_PIN_POINTS(PinName, "Pin that will contain all data with the specified identifier.", Normal)
 	}
-	
+
 	PCGEX_PIN_PARAM(FName("Params"), "Top-level values. Arbitrary, depends on generator used.", Normal)
 	return PinProperties;
 }
@@ -123,29 +123,25 @@ void FPCGExLoadWatabouDataContext::ProcessCollection(const UPCGExWatabouFeatures
 	{
 		const FPCGExWatabouFeature& Feature = InCollection->Elements[i];
 		if (SkipIds.Contains(Feature.Id)) { continue; }
-		
+
 		TSharedPtr<PCGExLoadWatabouData::FBuildFeature> NewTask = nullptr;
 
 		switch (Feature.Type)
 		{
-		case EPCGExWatabouFeatureType::Unknown:
-			break;
+		case EPCGExWatabouFeatureType::Unknown: break;
 		case EPCGExWatabouFeatureType::Point:
 			// TODO : Merge all, not supported yet
 			break;
-		case EPCGExWatabouFeatureType::MultiPoints:
-			NewTask = MakeShared<PCGExLoadWatabouData::FBuildMultiPoints>();
+		case EPCGExWatabouFeatureType::MultiPoints: NewTask = MakeShared<PCGExLoadWatabouData::FBuildMultiPoints>();
 			break;
-		case EPCGExWatabouFeatureType::LineString:
-			if (PointifyLines.Contains(Feature.Id))
+		case EPCGExWatabouFeatureType::LineString: if (PointifyLines.Contains(Feature.Id))
 			{
 				Pointify(Feature, i);
 				continue;
 			}
 			else { NewTask = MakeShared<PCGExLoadWatabouData::FBuildLineString>(); }
 			break;
-		case EPCGExWatabouFeatureType::Polygon:
-			if (PointifyPolygons.Contains(Feature.Id))
+		case EPCGExWatabouFeatureType::Polygon: if (PointifyPolygons.Contains(Feature.Id))
 			{
 				Pointify(Feature, i);
 				continue;
@@ -195,7 +191,8 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bDoPointifyPolygons) { Context->PointifyPolygons = Settings->PointifyPolygons; }
 	if (Settings->bDoPointifyLines) { Context->PointifyLines = Settings->PointifyLines; }
 
-	Context->WatabouData = PCGExHelpers::LoadBlocking_AnyThread(Settings->DataAsset);
+	PCGExHelpers::LoadBlocking_AnyThread(Settings->DataAsset, Context);
+	Context->WatabouData = Settings->DataAsset.Get();
 	if (!Context->WatabouData)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
@@ -221,10 +218,10 @@ bool FPCGExLoadWatabouDataElement::AdvanceWork(FPCGExContext* InContext, const U
 		Context->ProcessCollection(Context->WatabouData->Features);
 		if (Context->Tasklist.IsEmpty()) { return Context->CancelExecution(TEXT("Could not generate any points from the selected data.")); }
 
-		const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = Context->GetAsyncManager() ? Context->GetAsyncManager()->TryCreateTaskGroup(FName("TaskGroup")) : nullptr;
+		const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = Context->GetTaskManager() ? Context->GetTaskManager()->TryCreateTaskGroup(FName("TaskGroup")) : nullptr;
 		if (!TaskGroup) { return true; }
 
-		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 		TaskGroup->StartTasksBatch(Context->Tasklist);
 		return false;
 	}
@@ -256,7 +253,7 @@ if(!Feature.Id.IsNone()){ \
 
 namespace PCGExLoadWatabouData
 {
-	void FBuildMultiPoints::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildMultiPoints::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		PCGEX_FEATURE
 
@@ -270,7 +267,7 @@ namespace PCGExLoadWatabouData
 		}
 	}
 
-	void FBuildLineString::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildLineString::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		PCGEX_FEATURE
 
@@ -287,7 +284,7 @@ namespace PCGExLoadWatabouData
 		PointIO->Tags->AddRaw(Settings->PathlikeTag);
 	}
 
-	void FBuildPolygon::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildPolygon::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		PCGEX_FEATURE
 
@@ -304,7 +301,7 @@ namespace PCGExLoadWatabouData
 		PointIO->Tags->AddRaw(Settings->PathlikeTag);
 	}
 
-	void FBuildPointified::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FBuildPointified::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		PCGEX_FEATURE
 

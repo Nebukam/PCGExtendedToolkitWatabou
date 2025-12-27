@@ -41,7 +41,6 @@ public class PCGExtendedToolkitWatabou : ModuleRules
 			{
 				"GeometryCore",
 				"GeometryFramework",
-				"GeometryScriptingCore",
 				"GeometryAlgorithms",
 				"RenderCore",
 				"RHI",
