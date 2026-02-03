@@ -1,4 +1,4 @@
-// Copyright 2025 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 using UnrealBuildTool;
@@ -30,7 +30,9 @@ public class PCGExtendedToolkitWatabou : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
-				"PCGExtendedToolkit",
+				"PCGExCore",
+				"PCGExGraphs",
+				"PCGExFoundations",
 				"Json"
 			}
 		);

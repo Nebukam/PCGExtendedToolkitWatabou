@@ -4,14 +4,15 @@
 #include "Staging/PCGExLoadWatabouData.h"
 
 #include "PCGComponent.h"
-#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExWatabouData.h"
-#include "Paths/PCGExPaths.h"
+#include "Helpers/PCGExStreamingHelpers.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLoadWatabouData"
 #define PCGEX_NAMESPACE LoadWatabouData
@@ -191,7 +192,7 @@ bool FPCGExLoadWatabouDataElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bDoPointifyPolygons) { Context->PointifyPolygons = Settings->PointifyPolygons; }
 	if (Settings->bDoPointifyLines) { Context->PointifyLines = Settings->PointifyLines; }
 
-	PCGExHelpers::LoadBlocking_AnyThread(Settings->DataAsset, Context);
+	PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->DataAsset, Context);
 	Context->WatabouData = Settings->DataAsset.Get();
 	if (!Context->WatabouData)
 	{
@@ -221,12 +222,12 @@ bool FPCGExLoadWatabouDataElement::AdvanceWork(FPCGExContext* InContext, const U
 		const TSharedPtr<PCGExMT::FTaskGroup> TaskGroup = Context->GetTaskManager() ? Context->GetTaskManager()->TryCreateTaskGroup(FName("TaskGroup")) : nullptr;
 		if (!TaskGroup) { return true; }
 
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 		TaskGroup->StartTasksBatch(Context->Tasklist);
 		return false;
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		Context->MainPoints->StageOutputs();
 		Context->Done();
@@ -257,7 +258,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -271,7 +272,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -280,7 +281,7 @@ namespace PCGExLoadWatabouData
 			OutTransform[i].SetLocation(Context->MainTransform.TransformPosition(FVector(Feature.Coordinates[i], 0)));
 		}
 
-		PCGExPaths::SetClosedLoop(PointIO->GetOut(), false);
+		PCGExPaths::Helpers::SetClosedLoop(PointIO->GetOut(), false);
 		PointIO->Tags->AddRaw(Settings->PathlikeTag);
 	}
 
@@ -288,7 +289,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointIO->GetOut(), Feature.Coordinates.Num(), EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransform = PointIO->GetOut()->GetTransformValueRange();
 
@@ -297,7 +298,7 @@ namespace PCGExLoadWatabouData
 			OutTransform[i].SetLocation(Context->MainTransform.TransformPosition(FVector(Feature.Coordinates[i], 0)));
 		}
 
-		PCGExPaths::SetClosedLoop(PointIO->GetOut(), true);
+		PCGExPaths::Helpers::SetClosedLoop(PointIO->GetOut(), true);
 		PointIO->Tags->AddRaw(Settings->PathlikeTag);
 	}
 
@@ -305,7 +306,7 @@ namespace PCGExLoadWatabouData
 	{
 		PCGEX_FEATURE
 
-		PCGEx::SetNumPointsAllocated(
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(
 			PointIO->GetOut(), Elements.Num(),
 			EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax);
 
@@ -318,7 +319,7 @@ namespace PCGExLoadWatabouData
 		for (int i = 0; i < Elements.Num(); i++)
 		{
 			const FPCGExWatabouFeature& LocalFeature = ParentCollection->Elements[Elements[i]];
-			PCGExGeo::FBestFitPlane Plane(LocalFeature.Coordinates);
+			PCGExMath::FBestFitPlane Plane(LocalFeature.Coordinates);
 			Plane.Extents.Z = Plane.Extents.Y * 2;
 
 			OutTransform[i] = Plane.GetTransform() * Context->MainTransform;
