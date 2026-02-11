@@ -9,7 +9,7 @@
 #include "PCGExWatabou.generated.h"
 
 USTRUCT()
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouVersion
+struct PCGEXELEMENTSWATABOU_API FPCGExWatabouVersion
 {
 	GENERATED_BODY()
 

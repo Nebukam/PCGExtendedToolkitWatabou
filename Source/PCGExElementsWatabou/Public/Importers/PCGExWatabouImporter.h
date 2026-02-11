@@ -7,6 +7,8 @@
 
 #include "CoreMinimal.h"
 
+class FJsonObject;
+class FJsonValue;
 struct FPCGExFeatureDetails;
 struct FPCGExWatabouFeature;
 class UPCGExWatabouFeaturesCollection;
@@ -24,13 +26,13 @@ namespace PCGExWatabouImporter
 
 	using FLoopOverCoordinates = std::function<void(const FVector2D&, const int32)>;
 
-	PCGEXTENDEDTOOLKITWATABOU_API
+	PCGEXELEMENTSWATABOU_API
 	int32 LoopOverCoordinates(const TArray<TSharedPtr<FJsonValue>>& InCoordinates, FLoopOverCoordinates&& InFunc);
 
-	PCGEXTENDEDTOOLKITWATABOU_API
+	PCGEXELEMENTSWATABOU_API
 	bool GetVector2D(const TSharedPtr<FJsonValue>& InObject, FVector2D& OutValue);
 
-	class PCGEXTENDEDTOOLKITWATABOU_API IImporter : public TSharedFromThis<IImporter>
+	class PCGEXELEMENTSWATABOU_API IImporter : public TSharedFromThis<IImporter>
 	{
 	public:
 		IImporter() = default;
@@ -44,7 +46,7 @@ namespace PCGExWatabouImporter
 		virtual bool PostBuild(UPCGExWatabouData* InData);
 	};
 
-	class PCGEXTENDEDTOOLKITWATABOU_API IGeometryImporter : public IImporter
+	class PCGEXELEMENTSWATABOU_API IGeometryImporter : public IImporter
 	{
 	public:
 		IGeometryImporter() = default;

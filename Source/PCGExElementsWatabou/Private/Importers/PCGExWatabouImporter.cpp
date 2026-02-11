@@ -4,10 +4,12 @@
 
 #include "Importers/PCGExWatabouImporter.h"
 
-#include "PCGExtendedToolkitWatabou.h"
+#include "PCGExElementsWatabou.h"
 #include "PCGExWatabou.h"
 #include "Data/PCGExWatabouData.h"
 #include "Data/PCGExWatabouFeature.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 
 
 namespace PCGExWatabouImporter

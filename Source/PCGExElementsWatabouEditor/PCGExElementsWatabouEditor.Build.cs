@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExtendedToolkitWatabouEditor : ModuleRules
+public class PCGExElementsWatabouEditor : ModuleRules
 {
-	public PCGExtendedToolkitWatabouEditor(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExElementsWatabouEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -18,7 +18,7 @@ public class PCGExtendedToolkitWatabouEditor : ModuleRules
 				"SlateCore",
 				"EditorStyle",
 				"Projects", 
-				"PCGExtendedToolkitWatabou"
+				"PCGExElementsWatabou"
 			}
 		);
 
@@ -32,7 +32,7 @@ public class PCGExtendedToolkitWatabouEditor : ModuleRules
 				"PCG",
 				"PCGExtendedToolkit",
 				"PCGExtendedToolkitEditor",
-				"PCGExtendedToolkitWatabou",
+				"PCGExElementsWatabou",
 				"Json"
 			}
 		);

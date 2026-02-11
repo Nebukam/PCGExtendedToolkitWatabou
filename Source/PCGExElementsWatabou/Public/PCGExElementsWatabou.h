@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExModuleInterface.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogPCGExWatabou, Log, All)
 
@@ -13,10 +13,12 @@ namespace PCGExWatabouImporter
 	class IImporter;
 }
 
-class PCGEXTENDEDTOOLKITWATABOU_API FPCGExtendedToolkitWatabouModule final : public IModuleInterface
+class PCGEXELEMENTSWATABOU_API FPCGExElementsWatabouModule final : public IPCGExModuleInterface
 {
 	using FCreateFunc = TFunction<TSharedPtr<PCGExWatabouImporter::IImporter>()>;
 
+	PCGEX_MODULE_BODY
+	
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

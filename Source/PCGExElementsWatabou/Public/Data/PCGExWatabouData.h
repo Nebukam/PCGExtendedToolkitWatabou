@@ -18,7 +18,7 @@
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouData : public UDataAsset
+class PCGEXELEMENTSWATABOU_API UPCGExWatabouData : public UDataAsset
 {
 	GENERATED_BODY()
 

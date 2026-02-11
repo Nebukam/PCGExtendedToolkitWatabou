@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKITWATABOUEDITOR_API UPCGExWatabouDataFactory : public UFactory
+class PCGEXELEMENTSWATABOUEDITOR_API UPCGExWatabouDataFactory : public UFactory
 {
 	GENERATED_BODY()
 

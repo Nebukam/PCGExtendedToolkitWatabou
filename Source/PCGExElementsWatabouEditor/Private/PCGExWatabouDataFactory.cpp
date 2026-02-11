@@ -4,10 +4,13 @@
 #include "PCGExWatabouDataFactory.h"
 
 #include "Editor.h"
-#include "PCGExtendedToolkitWatabou.h"
+#include "PCGExElementsWatabou.h"
 #include "Data/PCGExWatabouData.h"
 #include "Data/PCGExWatabouFeature.h"
 #include "Importers/PCGExWatabouImporter.h"
+#include "Misc/FileHelper.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 
 UPCGExWatabouDataFactory::UPCGExWatabouDataFactory()
@@ -90,7 +93,7 @@ UObject* UPCGExWatabouDataFactory::FactoryCreateFile(UClass* InClass, UObject* I
 		PCGEX_WATABOU_FACTORY_CANCEL
 	}
 
-	FPCGExtendedToolkitWatabouModule* ModulePtr = FModuleManager::GetModulePtr<FPCGExtendedToolkitWatabouModule>("PCGExtendedToolkitWatabou");
+	FPCGExElementsWatabouModule* ModulePtr = FModuleManager::GetModulePtr<FPCGExElementsWatabouModule>("PCGExElementsWatabou");
 	if (!ModulePtr)
 	{
 		UE_LOG(LogPCGExWatabou, Error, TEXT("Can't find Watabou Module : %s"), *Filename)

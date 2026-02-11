@@ -11,10 +11,10 @@
 
 namespace PCGExWatabouImporter
 {
-	class PCGEXTENDEDTOOLKITWATABOU_API Importer_VG : public IGeometryImporter
+	class PCGEXELEMENTSWATABOU_API Importer_OPD : public IImporter
 	{
 	public:
-		Importer_VG() = default;
+		Importer_OPD() = default;
 
 		virtual void Build(const TSharedPtr<FJsonObject>& InJson, UPCGExWatabouFeaturesCollection* InCollection, UPCGExWatabouData* InData) override;
 	};

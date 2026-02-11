@@ -1,25 +1,27 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExtendedToolkitWatabou.h"
+#include "PCGExElementsWatabou.h"
 #if WITH_EDITOR
 #include "ISettingsModule.h"
 #endif
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExWatabou.h"
-#include "PCGExWatabouGlobalSettings.h"
 #include "Importers/PCGExWatabouImporter_Hood.h"
 #include "Importers/PCGExWatabouImporter_MFCG.h"
 #include "Importers/PCGExWatabouImporter_OPD.h"
 #include "Importers/PCGExWatabouImporter_VG.h"
 
-#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitWatabouModule"
+#define LOCTEXT_NAMESPACE "FPCGExElementsWatabouModule"
 
-void FPCGExtendedToolkitWatabouModule::StartupModule()
+void FPCGExElementsWatabouModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	// Register importers
+	
+	OldBaseModules.Add(TEXT("PCGExElementsWatabou"));
+	IPCGExModuleInterface::StartupModule();
 
 #define PCGEX_REGISTER_IMPORTER(_ID, _VERSION, _CLASS) RegisterImporter(_ID, FPCGExWatabouVersion(TEXT(#_VERSION)), []() { return MakeShared<_CLASS>(); });
 
@@ -38,13 +40,12 @@ void FPCGExtendedToolkitWatabouModule::StartupModule()
 #undef PCGEX_REGISTER_IMPORTER
 }
 
-void FPCGExtendedToolkitWatabouModule::ShutdownModule()
+void FPCGExElementsWatabouModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExModuleInterface::ShutdownModule();
 }
 
-void FPCGExtendedToolkitWatabouModule::RegisterImporter(FName Name, int32 Version, FCreateFunc Func)
+void FPCGExElementsWatabouModule::RegisterImporter(FName Name, int32 Version, FCreateFunc Func)
 {
 	TSharedPtr<TMap<int32, FCreateFunc>>* GeneratorsPtr = GeneratorRegistry.Find(Name);
 
@@ -60,7 +61,7 @@ void FPCGExtendedToolkitWatabouModule::RegisterImporter(FName Name, int32 Versio
 	GeneratorRegistry.Add(Name, NewMap);
 }
 
-TSharedPtr<PCGExWatabouImporter::IImporter> FPCGExtendedToolkitWatabouModule::CreateImporter(const FName Name, const int32 Version)
+TSharedPtr<PCGExWatabouImporter::IImporter> FPCGExElementsWatabouModule::CreateImporter(const FName Name, const int32 Version)
 {
 	TSharedPtr<TMap<int32, FCreateFunc>>* GeneratorsPtr = GeneratorRegistry.Find(Name);
 
@@ -82,4 +83,4 @@ TSharedPtr<PCGExWatabouImporter::IImporter> FPCGExtendedToolkitWatabouModule::Cr
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExtendedToolkitWatabouModule, PCGExtendedToolkitWatabou)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsWatabouModule, PCGExElementsWatabou)

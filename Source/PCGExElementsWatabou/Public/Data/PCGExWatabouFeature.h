@@ -23,7 +23,7 @@ enum class EPCGExWatabouFeatureType : uint8
  * 
  */
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureDetails
+struct PCGEXELEMENTSWATABOU_API FPCGExFeatureDetails
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureDetails
  * 
  */
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
+struct PCGEXELEMENTSWATABOU_API FPCGExFeatureIdentifier
 {
 	GENERATED_BODY()
 
@@ -71,7 +71,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExFeatureIdentifier
  * 
  */
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
+struct PCGEXELEMENTSWATABOU_API FPCGExWatabouFeature
 {
 	GENERATED_BODY()
 
@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKITWATABOU_API FPCGExWatabouFeature
  * 
  */
 UCLASS(BlueprintType)
-class PCGEXTENDEDTOOLKITWATABOU_API UPCGExWatabouFeaturesCollection : public UObject
+class PCGEXELEMENTSWATABOU_API UPCGExWatabouFeaturesCollection : public UObject
 {
 	GENERATED_BODY()
 

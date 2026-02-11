@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExtendedToolkitWatabou : ModuleRules
+public class PCGExElementsWatabou : ModuleRules
 {
-	public PCGExtendedToolkitWatabou(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExElementsWatabou(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

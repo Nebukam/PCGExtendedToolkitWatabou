@@ -10,7 +10,7 @@
 class FPCGExWatabouDataActions;
 class UPCGExWatabouDataReimportFactory;
 
-class FPCGExtendedToolkitWatabouEditorModule : public IModuleInterface
+class FPCGExElementsWatabouEditorModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;

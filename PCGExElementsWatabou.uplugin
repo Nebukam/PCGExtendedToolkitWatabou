@@ -2,12 +2,12 @@
   "FileVersion": 3,
   "Version": 1,
   "VersionName": "0.1",
-  "FriendlyName": "PCGExtendedToolkit + Watabou",
+  "FriendlyName": "PCGEx + Watabou",
   "Description": "PCG Extended Toolkit Interop with Watabou generators.",
   "Category": "PCG",
   "CreatedBy": "Timothé Lapetite",
-  "CreatedByURL": "https://github.com/Nebukam/PCGExtendedToolkitWatabou",
-  "DocsURL": "https://nebukam.github.io/PCGExtendedToolkitWatabou/",
+  "CreatedByURL": "https://github.com/Nebukam/PCGExElementsWatabou",
+  "DocsURL": "https://nebukam.github.io/PCGExElementsWatabou/",
   "FabURL": "com.epicgames.launcher://ue/Fab/product/---",
   "SupportURL": "https://discord.gg/mde2vC5gbE",
   "CanContainContent": true,
@@ -17,7 +17,7 @@
   "Installed": false,
   "Modules": [
     {
-      "Name": "PCGExtendedToolkitWatabou",
+      "Name": "PCGExElementsWatabou",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "Name": "PCGExtendedToolkitWatabouEditor",
+      "Name": "PCGExElementsWatabouEditor",
       "Type": "Editor",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
