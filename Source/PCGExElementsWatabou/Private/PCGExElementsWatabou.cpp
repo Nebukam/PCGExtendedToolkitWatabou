@@ -21,7 +21,7 @@ void FPCGExElementsWatabouModule::StartupModule()
 	// Register importers
 	
 	OldBaseModules.Add(TEXT("PCGExElementsWatabou"));
-	IPCGExModuleInterface::StartupModule();
+	IPCGExAddonModuleInterface::StartupModule();
 
 #define PCGEX_REGISTER_IMPORTER(_ID, _VERSION, _CLASS) RegisterImporter(_ID, FPCGExWatabouVersion(TEXT(#_VERSION)), []() { return MakeShared<_CLASS>(); });
 
@@ -42,7 +42,7 @@ void FPCGExElementsWatabouModule::StartupModule()
 
 void FPCGExElementsWatabouModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExAddonModuleInterface::ShutdownModule();
 }
 
 void FPCGExElementsWatabouModule::RegisterImporter(FName Name, int32 Version, FCreateFunc Func)

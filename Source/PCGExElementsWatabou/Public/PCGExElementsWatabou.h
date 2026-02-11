@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
+#include "PCGExAddonModuleInterface.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogPCGExWatabou, Log, All)
 
@@ -13,7 +13,7 @@ namespace PCGExWatabouImporter
 	class IImporter;
 }
 
-class PCGEXELEMENTSWATABOU_API FPCGExElementsWatabouModule final : public IPCGExModuleInterface
+class PCGEXELEMENTSWATABOU_API FPCGExElementsWatabouModule final : public IPCGExAddonModuleInterface
 {
 	using FCreateFunc = TFunction<TSharedPtr<PCGExWatabouImporter::IImporter>()>;
 
