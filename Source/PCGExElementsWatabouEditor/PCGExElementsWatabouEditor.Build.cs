@@ -17,7 +17,9 @@ public class PCGExElementsWatabouEditor : ModuleRules
 				"Slate",
 				"SlateCore",
 				"EditorStyle",
-				"Projects", 
+				"Projects",
+				"PCGExCore",
+				"PCGExCoreEditor",
 				"PCGExElementsWatabou"
 			}
 		);

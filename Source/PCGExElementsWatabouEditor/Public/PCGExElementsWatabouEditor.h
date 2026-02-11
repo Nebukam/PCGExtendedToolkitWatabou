@@ -4,14 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleInterface.h"
+#include "PCGExEditorModuleInterface.h"
 #include "Styling/SlateStyle.h"
 
 class FPCGExWatabouDataActions;
-class UPCGExWatabouDataReimportFactory;
 
-class FPCGExElementsWatabouEditorModule : public IModuleInterface
+class FPCGExElementsWatabouEditorModule final : public IPCGExEditorModuleInterface
 {
+	PCGEX_MODULE_BODY
+
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;

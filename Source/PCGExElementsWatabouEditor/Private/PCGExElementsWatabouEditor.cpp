@@ -21,9 +21,11 @@ Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentD
 
 void FPCGExElementsWatabouEditorModule::StartupModule()
 {
+	IPCGExEditorModuleInterface::StartupModule();
+
 	DataActions = MakeShared<FPCGExWatabouDataActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(DataActions.ToSharedRef());
-	
+
 	Style = MakeShared<FSlateStyleSet>("PCGExWatabouStyleSet");
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("PCGExElementsWatabou"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons"));
 
@@ -33,7 +35,6 @@ void FPCGExElementsWatabouEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExWatabouData)
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
-
 }
 
 #undef PCGEX_ADD_ICON
@@ -42,8 +43,10 @@ void FPCGExElementsWatabouEditorModule::ShutdownModule()
 {
 	FSlateStyleRegistry::UnRegisterSlateStyle(Style->GetStyleSetName());
 	Style.Reset();
+
+	IPCGExEditorModuleInterface::ShutdownModule();
 }
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsWatabouEditorModule, PCGExElementsWatabouEditor)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsWatabouEditorModule, PCGExElementsWatabouEditor)

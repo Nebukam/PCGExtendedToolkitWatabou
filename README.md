@@ -1,33 +1,78 @@
 ![UE 5.7](https://img.shields.io/badge/UE-5.7-darkgreen) ![5.6](https://img.shields.io/badge/5.6-darkgreen)
-# PCG Extended Toolkit + Watabou
 
-![PCGEx](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png)
+<h1 align="center">PCGEx + Watabou</h1>
 
-## Purpose of Plugin
+<p align="center">
+  <strong>Import procedural maps from Watabou's generators into Unreal Engine's PCG framework</strong><br>
+  Cities, villages, neighborhoods, and dungeons — from JSON to PCG data in seconds.
+</p>
 
-This **experimental** Watabou plugin allows to convert JSON exports of [Watabou Generators](https://watabou.itch.io/) into PCG & [PCG Extended Toolkit](https://github.com/nebukam/PCGExtendedToolkit) data.  
+<p align="center">
+  <a href="https://pcgex.gitbook.io/pcgex/watabou">Documentation</a> •
+  <a href="https://discord.gg/mde2vC5gbE">Discord</a> •
+  <a href="https://www.fab.com/listings/---">FAB</a>
+</p>
 
-<img width="1016" height="540" alt="image" src="https://github.com/user-attachments/assets/b9cd1aa8-9f61-49b6-8428-5082f60bc295" />
+---
 
+## What is PCGEx + Watabou?
 
-## EXPERIMENTAL Status
+This is a **companion plugin for [PCGEx](https://github.com/Nebukam/PCGExtendedToolkit)** that converts JSON exports from [Watabou's procedural generators](https://watabou.itch.io/) into PCG & PCGEx data you can use directly in Unreal Engine.
 
-PCGExElementsWatabou (this plugin) is **experimental** code. Watabou JSON data structure may change over time and it may stop working without me noticing. If that's the case, create an issue and I'll look into the changes; the code is designed to support multiple data versions, starting with the latest at the time of creating this plugin.
+![Image](https://github.com/user-attachments/assets/b9cd1aa8-9f61-49b6-8428-5082f60bc295)
 
-## Getting Started
+### Supported Generators
 
-Go to any of the currently supported Watabou generators :
 - [Medieval Fantasy City Generator](https://watabou.itch.io/medieval-fantasy-city-generator)
 - [Neighborhood Generator](https://watabou.itch.io/neighbourhood)
 - [Village Generator](https://watabou.itch.io/village-generator)
+- [One Page Dungeon](https://watabou.itch.io/one-page-dungeon)
 
-Then :  
-1. Right-click and export to JSON.  
-2. Rename the file extension from `.json` to `.wataboujson` -- _this is key for the auto-import to kick-in in Unreal._  
-3. Drag'n drop the file to Unreal, this shoudld generate a new Data Asset. Save it.
-4. In a PCG Graph, use the `Load Watabout Data` node and pick your data asset.
+### Experimental Status
 
-> Note that the content of the JSON export is based on what is displayed in the generator. Some generator allow for different type of data to be available such as districts and other things -- play around with them!
+This plugin is **experimental**. Watabou's JSON data structures may change over time. The code is designed to support multiple data versions, but if something breaks, [open an issue](https://github.com/Nebukam/PCGExElementsWatabou/issues) and I'll look into it.
 
-For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
+---
 
+## Requirements
+
+- **Unreal Engine 5.6+**
+- **[PCGExtendedToolkit](https://github.com/Nebukam/PCGExtendedToolkit)** — Core PCGEx plugin (free, MIT licensed)
+
+---
+
+## Installation
+
+### From FAB
+Get the latest release from the **[FAB Marketplace](https://www.fab.com/listings/---)**.
+
+### From Source
+1. Clone this repository into your project's `Plugins/` folder
+2. Ensure **PCGExtendedToolkit** is also installed
+3. Regenerate project files and build
+
+---
+
+## Getting Started
+
+1. Go to any of the supported Watabou generators listed above
+2. Right-click and export to JSON
+3. Rename the file extension from `.json` to `.wataboujson` — this is key for the auto-import to kick in
+4. Drag and drop the file into Unreal — this generates a new Data Asset. Save it.
+5. In a PCG Graph, use the `Load Watabou Data` node and pick your data asset
+
+> The content of the JSON export depends on what is displayed in the generator. Some generators expose different data types such as districts — play around with them!
+
+---
+
+## License
+
+**MIT License** — Free for personal and commercial use. See [LICENSE](LICENSE) for full terms.
+
+---
+
+## Support
+
+- **[Discord](https://discord.gg/mde2vC5gbE)** — Community support and discussion
+- **[Documentation](https://pcgex.gitbook.io/pcgex)** — Guides and tutorials
+- **[Patreon](https://www.patreon.com/c/pcgex)** — Support PCGEx development
