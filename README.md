@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://pcgex.gitbook.io/pcgex/watabou">Documentation</a> •
   <a href="https://discord.gg/mde2vC5gbE">Discord</a> •
-  <a href="https://www.fab.com/listings/---">FAB</a>
+  <a href="https://www.fab.com/listings/ac5c54f5-1a92-4e96-99c6-ff8fd9a37b4c">FAB</a>
 </p>
 
 ---
@@ -48,7 +48,7 @@ This plugin is **experimental**. Watabou's JSON data structures may change over 
 ## Installation
 
 ### From FAB
-Get the latest release from the **[FAB Marketplace](https://www.fab.com/listings/---)**.
+Get the latest release from the **[FAB Marketplace](https://www.fab.com/listings/ac5c54f5-1a92-4e96-99c6-ff8fd9a37b4c)**.
 
 ### From Source
 1. Clone this repository into your project's `Plugins/` folder
